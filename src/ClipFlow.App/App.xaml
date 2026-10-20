@@ -1,0 +1,79 @@
+<Application x:Class="ClipFlow.App.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             ShutdownMode="OnExplicitShutdown">
+    <Application.Resources>
+        <!-- Paleta Dinâmica Padrão (Dark) - Atualizada em tempo real pelo ThemeService -->
+        <SolidColorBrush x:Key="WindowBgBrush" Color="#18181B" />
+        <SolidColorBrush x:Key="WindowBorderBrush" Color="#33333D" />
+        <SolidColorBrush x:Key="HeaderFooterBgBrush" Color="#1E1E24" />
+        <SolidColorBrush x:Key="SidebarBgBrush" Color="#1B1B22" />
+        <SolidColorBrush x:Key="DividerBorderBrush" Color="#2A2A34" />
+        <SolidColorBrush x:Key="InputBgBrush" Color="#22222A" />
+        <SolidColorBrush x:Key="InputBorderBrush" Color="#343440" />
+        <SolidColorBrush x:Key="CardBgBrush" Color="#222229" />
+        <SolidColorBrush x:Key="CardBorderBrush" Color="#30303A" />
+        <SolidColorBrush x:Key="CardHoverBgBrush" Color="#292B36" />
+        <SolidColorBrush x:Key="CardHoverBorderBrush" Color="#525260" />
+        <SolidColorBrush x:Key="CardSelectedBgBrush" Color="#232E48" />
+        <SolidColorBrush x:Key="CardSelectedBorderBrush" Color="#3B82F6" />
+        <SolidColorBrush x:Key="CardPinnedBgBrush" Color="#1C2436" />
+        <SolidColorBrush x:Key="CardPinnedBorderBrush" Color="#334E7B" />
+        <SolidColorBrush x:Key="ButtonBgBrush" Color="#27272A" />
+        <SolidColorBrush x:Key="ButtonBorderBrush" Color="#3F3F46" />
+        <SolidColorBrush x:Key="ButtonHoverBgBrush" Color="#3F3F46" />
+        <SolidColorBrush x:Key="PrimaryTextBrush" Color="#F8FAFC" />
+        <SolidColorBrush x:Key="SecondaryTextBrush" Color="#9CA3AF" />
+        <SolidColorBrush x:Key="AccentTextBrush" Color="#60A5FA" />
+        <SolidColorBrush x:Key="ShortcutBadgeBgBrush" Color="#262F45" />
+        <SolidColorBrush x:Key="NoteBarBgBrush" Color="#1E293B" />
+
+        <!-- Estilo Moderno e Fino para ScrollBar (Estilo Windows 11 / macOS) -->
+        <Style x:Key="SlimThumbStyle" TargetType="Thumb">
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="OverridesDefaultStyle" Value="True" />
+            <Setter Property="IsTabStop" Value="False" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Thumb">
+                        <Border x:Name="ThumbBd"
+                                Background="{DynamicResource SecondaryTextBrush}"
+                                Opacity="0.42"
+                                CornerRadius="3"
+                                Margin="1,2" />
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ThumbBd" Property="Opacity" Value="0.75" />
+                            </Trigger>
+                            <Trigger Property="IsDragging" Value="True">
+                                <Setter TargetName="ThumbBd" Property="Background" Value="{DynamicResource AccentTextBrush}" />
+                                <Setter TargetName="ThumbBd" Property="Opacity" Value="0.95" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="ScrollBar">
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="OverridesDefaultStyle" Value="True" />
+            <Setter Property="Width" Value="7" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid Background="Transparent" Width="{TemplateBinding Width}">
+                            <Track x:Name="PART_Track" IsDirectionReversed="True" Focusable="False">
+                                <Track.Thumb>
+                                    <Thumb Style="{StaticResource SlimThumbStyle}" />
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Application.Resources>
+</Application>

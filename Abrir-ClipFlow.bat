@@ -1,0 +1,9 @@
+@echo off
+chcp 65001 >nul
+title Iniciando ClipFlow...
+echo Fechando instancia anterior (se estiver aberta)...
+taskkill /F /IM ClipFlow.exe >nul 2>&1
+cd /d "%~dp0"
+echo Atualizando e abrindo o ClipFlow...
+dotnet build src/ClipFlow.App -c Release --nologo -v q
+start "" "%~dp0src\ClipFlow.App\bin\Release\net10.0-windows\ClipFlow.exe"
