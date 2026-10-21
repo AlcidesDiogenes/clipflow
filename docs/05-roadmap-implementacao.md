@@ -1,6 +1,6 @@
 # 05. Roadmap de Implementação — ClipFlow
 
-Este documento define o plano de construção passo a passo do **ClipFlow**, dividido em fases incrementais e testáveis.
+Este documento registra o plano de construção passo a passo do **ClipFlow**, dividindo as entregas em fases estruturadas, incrementais e concluídas.
 
 ---
 
@@ -30,18 +30,37 @@ Este documento define o plano de construção passo a passo do **ClipFlow**, div
   * Ícone de Pin interativo 📌
   * Preview de cor real quando copiar códigos `#HEX`
   * Badges para Links `🔗`, E-mails `✉️`, Código `</>` e Imagens `🖼️`
-  * Indicador numérico `Alt+1..9` para colagem rápida
   * Edição rápida de apelido/etiqueta para itens fixados (`F2` ou `✏️`)
 - [x] **3.5.** Implementar `PasteInjector.cs` para colar automaticamente ao dar `Enter` ou duplo clique (`Ctrl+V` nativo + `Shift+Enter` para colar sem formatação).
 
 ---
 
-## Fase 4: Bandeja do Sistema (System Tray), Configurações e Polimento
-- [x] **4.1.** Adicionar ícone na Bandeja do Sistema (`NotifyIcon`) com menu de contexto:
-  * *Abrir ClipFlow (`Ctrl+Shift+V`)*
-  * *Ver Itens Fixados 📌*
-  * *Pausar / Retomar Captura*
-  * *Limpar Histórico Não-Fixado*
-  * *Sair*
+## Fase 4: Bandeja do Sistema (System Tray), Configurações e Atalhos
+- [x] **4.1.** Adicionar ícone na Bandeja do Sistema (`NotifyIcon`) com menu de contexto completo.
 - [x] **4.2.** Permitir alternar atalho global diretamente pelo badge no topo da janela (`Ctrl+Shift+V`, `Alt+V`, `Ctrl+Alt+V`).
-- [x] **4.3.** Compilação Release limpa (`0 Erros, 0 Avisos`).
+- [x] **4.3.** Persistência e restauração de dados em formato JSON atômico.
+
+---
+
+## Fase 5: Textos Rápidos (Modificadores), Gatilho de Borda, Temas e Redesign de UI
+- [x] **5.1.** Implementar sistema de **Textos Rápidos / Modificadores (`TextModifierPreset`)**:
+  * Barra horizontal de Chips na janela principal.
+  * Suporte a prefixos e sufixos (ex.: *"Bom dia"*, *"Boa tarde"*, assinaturas).
+  * Controle customizado de quebra de linha (Dupla, Simples, Espaço, Nenhuma).
+  * Atalhos rápidos de ativação via `Alt + 1` até `Alt + 9`.
+  * Opção de auto-reset da seleção após colar.
+- [x] **5.2.** Implementar abertura automática ao encostar o mouse nas laterais da tela (**Edge Trigger**):
+  * `EdgeTriggerService` com detecção de coordenadas de borda e sensibilidade em milissegundos.
+  * Período de graça e debounce para estabilizar o clique fora da janela sem piscar ou fechar abruptamente.
+- [x] **5.3.** Remoção do atalho conflitante `Ctrl + 1..9` (preservando o uso nativo de alternância de abas de navegadores e IDEs como Chrome e VS Code; colagem rápida mantida com `Enter`).
+- [x] **5.4.** Redesenho completo da **Central de Configurações (`SettingsWindow`)**:
+  * Proporções expandidas (`820 × 630`) no estilo Windows 11 Fluent.
+  * Navegação lateral com 7 seções identificadas por ícones vetoriais SVG e indicador ativo fluente.
+  * Controles customizados: ComboBox modernos com dropdown flutuante, switches redondos e caixas de texto com foco em azul elétrico.
+  * Editor completo de modificadores com pré-visualização ao vivo em fonte monoespaçada e botões de ordenação (▲/▼).
+- [x] **5.5.** Suporte dinâmico a **Tema Claro (Light)** e **Tema Escuro (Dark)** via `ThemeService`.
+- [x] **5.6.** Otimização de nitidez de fontes no WPF:
+  * Ativação de `RenderOptions.ClearTypeHint="Enabled"` para reativar subpixel rendering em janelas transparentes.
+  * Migração para a família tipográfica calibrada `Segoe UI, Segoe UI Variable Text`.
+  * Fixação por pixel com `TextOptions.TextHintingMode="Fixed"`.
+- [x] **5.7.** Compilação Release limpa com 0 avisos e 0 erros.

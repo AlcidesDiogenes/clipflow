@@ -3,8 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:platform="clr-namespace:ClipFlow.App.Platform"
         Title="Configurações — ClipFlow"
-        Width="720"
-        Height="560"
+        Width="820"
+        Height="630"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         AllowsTransparency="True"
@@ -15,18 +15,19 @@
         SnapsToDevicePixels="True"
         TextOptions.TextFormattingMode="Display"
         TextOptions.TextRenderingMode="ClearType"
-        FontFamily="Segoe UI Variable Display, Segoe UI"
+        TextOptions.TextHintingMode="Fixed"
+        FontFamily="Segoe UI, Segoe UI Variable Text"
         PreviewKeyDown="Window_PreviewKeyDown">
 
     <Window.Resources>
-        <!-- Estilo dos Botões do Menu Lateral -->
+        <!-- Estilo dos Botões do Menu Lateral (Fluent Indicator + SVG Icon) -->
         <Style x:Key="NavRadioStyle" TargetType="RadioButton">
             <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="FontSize" Value="13" />
-            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontWeight" Value="Medium" />
             <Setter Property="Padding" Value="12,10" />
-            <Setter Property="Margin" Value="0,0,0,4" />
+            <Setter Property="Margin" Value="0,0,0,3" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="UseLayoutRounding" Value="True" />
             <Setter Property="Template">
@@ -36,7 +37,18 @@
                                 Background="{TemplateBinding Background}"
                                 CornerRadius="7"
                                 Padding="{TemplateBinding Padding}">
-                            <ContentPresenter VerticalAlignment="Center" />
+                            <Grid>
+                                <!-- Indicador Ativo Lateral -->
+                                <Border x:Name="Pill"
+                                        Width="3.5"
+                                        Height="18"
+                                        CornerRadius="1.75"
+                                        Background="#3B82F6"
+                                        HorizontalAlignment="Left"
+                                        Margin="-8,0,0,0"
+                                        Visibility="Collapsed" />
+                                <ContentPresenter VerticalAlignment="Center" Margin="4,0,0,0" />
+                            </Grid>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
@@ -44,8 +56,10 @@
                                 <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#2563EB" />
-                                <Setter Property="Foreground" Value="#FFFFFF" />
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource CardSelectedBgBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
+                                <Setter Property="FontWeight" Value="SemiBold" />
+                                <Setter TargetName="Pill" Property="Visibility" Value="Visible" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -53,23 +67,23 @@
             </Setter>
         </Style>
 
-        <!-- Cartão de Opção de Configuração -->
+        <!-- Cartão Moderno de Opção de Configuração -->
         <Style x:Key="SettingCardStyle" TargetType="Border">
             <Setter Property="Background" Value="{DynamicResource CardBgBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="8" />
-            <Setter Property="Padding" Value="14,12" />
+            <Setter Property="Padding" Value="16,13" />
             <Setter Property="Margin" Value="0,0,0,10" />
         </Style>
 
-        <!-- Estilo de Botão Padrão -->
+        <!-- Botão Secundário Padrão -->
         <Style x:Key="ActionButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="{DynamicResource ButtonBgBrush}" />
             <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Padding" Value="12,7" />
+            <Setter Property="Padding" Value="13,7" />
             <Setter Property="FontSize" Value="12" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Cursor" Value="Hand" />
@@ -87,6 +101,13 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ButtonHoverBgBrush}" />
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource CardHoverBorderBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.85" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.45" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -94,7 +115,76 @@
             </Setter>
         </Style>
 
-        <!-- Estilo de CheckBox Moderno -->
+        <!-- Botão Primário de Destaque -->
+        <Style x:Key="PrimaryActionButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#2563EB" />
+            <Setter Property="Foreground" Value="#FFFFFF" />
+            <Setter Property="BorderBrush" Value="#3B82F6" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="16,7" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#1D4ED8" />
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#60A5FA" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#1E40AF" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Botão de Perigo (Danger) -->
+        <Style x:Key="DangerActionButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#DC2626" />
+            <Setter Property="Foreground" Value="#FFFFFF" />
+            <Setter Property="BorderBrush" Value="#EF4444" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="13,7" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#B91C1C" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#991B1B" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Estilo Switch Toggle Fluente (Estilo Windows 11) -->
         <Style x:Key="ToggleCheckStyle" TargetType="CheckBox">
             <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
             <Setter Property="Cursor" Value="Hand" />
@@ -103,26 +193,191 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="CheckBox">
                         <Border x:Name="Track"
-                                Width="42"
-                                Height="22"
-                                CornerRadius="11"
+                                Width="44"
+                                Height="24"
+                                CornerRadius="12"
                                 Background="{DynamicResource ButtonBgBrush}"
                                 BorderBrush="{DynamicResource ButtonBorderBrush}"
-                                BorderThickness="1">
+                                BorderThickness="1.2">
                             <Ellipse x:Name="Thumb"
                                      Width="16"
                                      Height="16"
                                      Fill="{DynamicResource SecondaryTextBrush}"
                                      HorizontalAlignment="Left"
-                                     Margin="2,0,0,0" />
+                                     Margin="3,0,0,0" />
                         </Border>
                         <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Track" Property="BorderBrush" Value="{DynamicResource CardHoverBorderBrush}" />
+                            </Trigger>
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter TargetName="Track" Property="Background" Value="#2563EB" />
                                 <Setter TargetName="Track" Property="BorderBrush" Value="#3B82F6" />
                                 <Setter TargetName="Thumb" Property="HorizontalAlignment" Value="Right" />
-                                <Setter TargetName="Thumb" Property="Margin" Value="0,0,2,0" />
+                                <Setter TargetName="Thumb" Property="Margin" Value="0,0,3,0" />
                                 <Setter TargetName="Thumb" Property="Fill" Value="#FFFFFF" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Estilo Moderno para ComboBox (Fluente e Elegante) -->
+        <Style TargetType="ComboBox">
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="OverridesDefaultStyle" Value="True" />
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto" />
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+            <Setter Property="ScrollViewer.CanContentScroll" Value="True" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton x:Name="ToggleButton"
+                                          Focusable="False"
+                                          IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                          ClickMode="Press">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border x:Name="Border"
+                                                Background="{DynamicResource InputBgBrush}"
+                                                BorderBrush="{DynamicResource InputBorderBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="6">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="28" />
+                                                </Grid.ColumnDefinitions>
+                                                <!-- Chevron Arrow -->
+                                                <Path x:Name="Arrow"
+                                                      Grid.Column="1"
+                                                      Data="M0,0 L4,4 L8,0"
+                                                      Stroke="{DynamicResource SecondaryTextBrush}"
+                                                      StrokeThickness="1.5"
+                                                      HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center" />
+                                            </Grid>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource AccentTextBrush}" />
+                                                <Setter TargetName="Arrow" Property="Stroke" Value="{DynamicResource PrimaryTextBrush}" />
+                                            </Trigger>
+                                            <Trigger Property="IsChecked" Value="True">
+                                                <Setter TargetName="Border" Property="BorderBrush" Value="#3B82F6" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+
+                            <ContentPresenter x:Name="ContentSite"
+                                              IsHitTestVisible="False"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                              Margin="11,0,30,0"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Left" />
+
+                            <Popup x:Name="Popup"
+                                   Placement="Bottom"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   AllowsTransparency="True"
+                                   Focusable="False"
+                                   PopupAnimation="Slide">
+                                <Grid x:Name="DropDown"
+                                      SnapsToDevicePixels="True"
+                                      MinWidth="{TemplateBinding ActualWidth}"
+                                      MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                    <Border x:Name="DropDownBorder"
+                                            Background="{DynamicResource WindowBgBrush}"
+                                            BorderBrush="{DynamicResource WindowBorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="8"
+                                            Margin="0,4,0,4"
+                                            Padding="4">
+                                        <Border.Effect>
+                                            <DropShadowEffect BlurRadius="14" ShadowDepth="4" Opacity="0.4" Color="#000000" />
+                                        </Border.Effect>
+                                        <ScrollViewer SnapsToDevicePixels="True" CanContentScroll="True">
+                                            <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained" />
+                                        </ScrollViewer>
+                                    </Border>
+                                </Grid>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Itens do Dropdown do ComboBox -->
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="OverridesDefaultStyle" Value="True" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Padding" Value="11,7" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border x:Name="ItemBd"
+                                Background="Transparent"
+                                CornerRadius="5"
+                                Padding="{TemplateBinding Padding}"
+                                Margin="0,1">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ItemBd" Property="Background" Value="{DynamicResource ButtonHoverBgBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ItemBd" Property="Background" Value="{DynamicResource CardSelectedBgBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
+                                <Setter Property="FontWeight" Value="SemiBold" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Estilo Moderno de Caixa de Texto (TextBox) -->
+        <Style TargetType="TextBox">
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="Background" Value="{DynamicResource InputBgBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="CaretBrush" Value="{DynamicResource AccentTextBrush}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Margin="{TemplateBinding Padding}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource CardHoverBorderBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#3B82F6" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -131,11 +386,11 @@
         </Style>
     </Window.Resources>
 
-    <!-- Grid Raiz separando camada de Sombra da camada de Conteúdo -->
+    <!-- Grid Raiz com Sombra Suave -->
     <Grid Margin="14">
         <Border Background="{DynamicResource WindowBgBrush}" CornerRadius="12" IsHitTestVisible="False">
             <Border.Effect>
-                <DropShadowEffect BlurRadius="20" ShadowDepth="4" Opacity="0.45" Color="#000000" />
+                <DropShadowEffect BlurRadius="24" ShadowDepth="6" Opacity="0.5" Color="#000000" />
             </Border.Effect>
         </Border>
 
@@ -144,7 +399,11 @@
                 BorderThickness="1"
                 CornerRadius="12"
                 UseLayoutRounding="True"
-                SnapsToDevicePixels="True">
+                SnapsToDevicePixels="True"
+                RenderOptions.ClearTypeHint="Enabled"
+                TextOptions.TextFormattingMode="Display"
+                TextOptions.TextRenderingMode="ClearType"
+                TextOptions.TextHintingMode="Fixed">
 
             <Grid>
                 <Grid.RowDefinitions>
@@ -153,102 +412,186 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <!-- TOPO -->
+                <!-- ==================== TOPO / BARRA DE TÍTULO ==================== -->
                 <Border Grid.Row="0"
                         Background="{DynamicResource HeaderFooterBgBrush}"
                         CornerRadius="12,12,0,0"
                         BorderBrush="{DynamicResource DividerBorderBrush}"
                         BorderThickness="0,0,0,1"
-                        Padding="16,12"
+                        Padding="18,12"
                         MouseLeftButtonDown="Header_MouseLeftButtonDown">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
+
                         <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                            <Path Data="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"
-                                  Fill="{DynamicResource AccentTextBrush}"
-                                  Width="18"
-                                  Height="18"
-                                  Stretch="Uniform"
-                                  Margin="0,0,10,0"
-                                  VerticalAlignment="Center" />
-                            <TextBlock Text="Configurações do ClipFlow"
-                                       Foreground="{DynamicResource PrimaryTextBrush}"
-                                       FontSize="15"
-                                       FontWeight="Bold"
-                                       VerticalAlignment="Center" />
+                            <!-- Ícone da Aplicação em Pílula Azul -->
+                            <Border Background="#2563EB" CornerRadius="7" Width="28" Height="28" Margin="0,0,12,0">
+                                <Path Data="M19,3H14.82C14.4,1.84 13.3,1 12,1C10.7,1 9.6,1.84 9.18,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M12,3A1,1 0 0,1 13,4A1,1 0 0,1 12,5A1,1 0 0,1 11,4A1,1 0 0,1 12,3M7,7H17V5H19V19H5V5H7V7M8,11H16V9H8V11M8,15H16V13H8V15M8,18H13V16H8V18Z"
+                                      Fill="#FFFFFF"
+                                      Width="15"
+                                      Height="15"
+                                      Stretch="Uniform"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center" />
+                            </Border>
+
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Configurações do ClipFlow"
+                                           Foreground="{DynamicResource PrimaryTextBrush}"
+                                           FontSize="14.5"
+                                           FontWeight="Bold" />
+                                <TextBlock Text="Personalize comportamento, atalhos, aparência e modificadores rápidos"
+                                           Foreground="{DynamicResource SecondaryTextBrush}"
+                                           FontSize="11"
+                                           Margin="0,1,0,0" />
+                            </StackPanel>
                         </StackPanel>
 
+                        <!-- Botão Fechar (✕) -->
                         <Button Grid.Column="1"
                                 Style="{StaticResource ActionButtonStyle}"
                                 Content="✕"
-                                Padding="9,4"
+                                Width="30"
+                                Height="30"
+                                Padding="0"
+                                FontSize="12.5"
+                                ToolTip="Fechar configurações (Esc)"
                                 Click="CloseButton_Click" />
                     </Grid>
                 </Border>
 
-                <!-- CORPO PRINCIPAL -->
+                <!-- ==================== CORPO PRINCIPAL ==================== -->
                 <Grid Grid.Row="1">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="205" />
+                        <ColumnDefinition Width="220" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
-                    <!-- MENU LATERAL DE SEÇÕES -->
+                    <!-- MENU LATERAL DE NAVEGAÇÃO -->
                     <Border Grid.Column="0"
                             Background="{DynamicResource SidebarBgBrush}"
                             BorderBrush="{DynamicResource DividerBorderBrush}"
                             BorderThickness="0,0,1,0"
-                            Padding="10,14">
+                            Padding="12,16">
                         <StackPanel>
+                            <TextBlock Text="PREFERÊNCIAS"
+                                       Foreground="{DynamicResource SecondaryTextBrush}"
+                                       FontSize="10.5"
+                                       FontWeight="Bold"
+                                       Margin="8,0,0,8"
+                                       Opacity="0.75" />
+
+                            <!-- Seção 1: Geral -->
                             <RadioButton x:Name="NavGeneral"
                                          Style="{StaticResource NavRadioStyle}"
-                                         Content="1. Geral &amp; Sistema"
                                          IsChecked="True"
-                                         Checked="NavSection_Checked" />
+                                         Checked="NavSection_Checked">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"
+                                          Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
+                                          Width="15" Height="15" Stretch="Uniform" Margin="0,0,10,0" VerticalAlignment="Center" />
+                                    <TextBlock Text="Geral &amp; Sistema" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </RadioButton>
+
+                            <!-- Seção 2: Atalhos & Bordas -->
                             <RadioButton x:Name="NavShortcuts"
                                          Style="{StaticResource NavRadioStyle}"
-                                         Content="2. Atalhos &amp; Bordas"
-                                         Checked="NavSection_Checked" />
+                                         Checked="NavSection_Checked">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="M19 10h-2V8h2v2zm-4 0h-2V8h2v2zm-4 0H9V8h2v2zm-4 0H5V8h2v2zm12 3h-2v-2h2v2zm-4 0h-2v-2h2v2zm-4 0H9v-2h2v2zm-4 0H5v-2h2v2zm14 7H3a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h18a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2zM3 6v12h18V6H3zm6 10h6v-2H9v2z"
+                                          Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
+                                          Width="15" Height="15" Stretch="Uniform" Margin="0,0,10,0" VerticalAlignment="Center" />
+                                    <TextBlock Text="Atalhos &amp; Borda" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </RadioButton>
+
+                            <!-- Seção 3: Histórico & Captura -->
                             <RadioButton x:Name="NavHistory"
                                          Style="{StaticResource NavRadioStyle}"
-                                         Content="3. Histórico &amp; Captura"
-                                         Checked="NavSection_Checked" />
-                            <RadioButton x:Name="NavAppearance"
-                                         Style="{StaticResource NavRadioStyle}"
-                                         Content="4. Aparência &amp; Tema"
-                                         Checked="NavSection_Checked" />
-                            <RadioButton x:Name="NavPrivacy"
-                                         Style="{StaticResource NavRadioStyle}"
-                                         Content="5. Privacidade &amp; Senhas"
-                                         Checked="NavSection_Checked" />
-                            <RadioButton x:Name="NavData"
-                                         Style="{StaticResource NavRadioStyle}"
-                                         Content="6. Dados &amp; Limpeza"
-                                         Checked="NavSection_Checked" />
+                                         Checked="NavSection_Checked">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="M19,3H14.82C14.4,1.84 13.3,1 12,1C10.7,1 9.6,1.84 9.18,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M12,3A1,1 0 0,1 13,4A1,1 0 0,1 12,5A1,1 0 0,1 11,4A1,1 0 0,1 12,3M7,7H17V5H19V19H5V5H7V7M8,11H16V9H8V11M8,15H16V13H8V15M8,18H13V16H8V18Z"
+                                          Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
+                                          Width="15" Height="15" Stretch="Uniform" Margin="0,0,10,0" VerticalAlignment="Center" />
+                                    <TextBlock Text="Histórico &amp; Captura" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </RadioButton>
+
+                            <!-- Seção 7: Textos & Modificadores -->
                             <RadioButton x:Name="NavModifiers"
                                          Style="{StaticResource NavRadioStyle}"
-                                         Content="7. Textos &amp; Modificadores"
-                                         Checked="NavSection_Checked" />
+                                         Checked="NavSection_Checked">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="M20,2H4A2,2 0 0,0 2,4V22L6,18H20A2,2 0 0,0 22,16V4A2,2 0 0,0 20,2M13.5,9H12V7H13.5V9M10.5,9H9V7H10.5V9M16.5,9H15V7H16.5V9M16,13H8V11H16V13Z"
+                                          Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
+                                          Width="15" Height="15" Stretch="Uniform" Margin="0,0,10,0" VerticalAlignment="Center" />
+                                    <TextBlock Text="Textos Rápidos" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </RadioButton>
+
+                            <!-- Seção 4: Aparência & Tema -->
+                            <RadioButton x:Name="NavAppearance"
+                                         Style="{StaticResource NavRadioStyle}"
+                                         Checked="NavSection_Checked">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A3.5,3.5 0 0,0 15.5,18.5C15.5,18.1 15.35,17.74 15.1,17.45C14.86,17.18 14.7,16.82 14.7,16.41C14.7,15.6 15.35,14.95 16.16,14.95H18A4,4 0 0,0 22,10.95C22,6.01 17.52,2 12,2M6.5,11.5A1.5,1.5 0 0,1 5,10A1.5,1.5 0 0,1 6.5,8.5A1.5,1.5 0 0,1 8,10A1.5,1.5 0 0,1 6.5,11.5M9.5,7.5A1.5,1.5 0 0,1 8,6A1.5,1.5 0 0,1 9.5,4.5A1.5,1.5 0 0,1 11,6A1.5,1.5 0 0,1 9.5,7.5M14.5,7.5A1.5,1.5 0 0,1 13,6A1.5,1.5 0 0,1 14.5,4.5A1.5,1.5 0 0,1 16,6A1.5,1.5 0 0,1 14.5,7.5M17.5,11.5A1.5,1.5 0 0,1 16,10A1.5,1.5 0 0,1 17.5,8.5A1.5,1.5 0 0,1 19,10A1.5,1.5 0 0,1 17.5,11.5Z"
+                                          Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
+                                          Width="15" Height="15" Stretch="Uniform" Margin="0,0,10,0" VerticalAlignment="Center" />
+                                    <TextBlock Text="Aparência &amp; Tema" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </RadioButton>
+
+                            <!-- Seção 5: Privacidade & Senhas -->
+                            <RadioButton x:Name="NavPrivacy"
+                                         Style="{StaticResource NavRadioStyle}"
+                                         Checked="NavSection_Checked">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,7A3,3 0 0,1 15,10C15,11.27 14.21,12.35 13.08,12.78L13.5,16H10.5L10.92,12.78C9.79,12.35 9,11.27 9,10A3,3 0 0,1 12,7Z"
+                                          Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
+                                          Width="15" Height="15" Stretch="Uniform" Margin="0,0,10,0" VerticalAlignment="Center" />
+                                    <TextBlock Text="Privacidade &amp; Senhas" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </RadioButton>
+
+                            <!-- Seção 6: Dados & Armazenamento -->
+                            <RadioButton x:Name="NavData"
+                                         Style="{StaticResource NavRadioStyle}"
+                                         Checked="NavSection_Checked">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="M12,3C7.58,3 4,4.79 4,7C4,9.21 7.58,11 12,11C16.42,11 20,9.21 20,7C20,4.79 16.42,3 12,3M4,9V12C4,14.21 7.58,16 12,16C16.42,16 20,14.21 20,12V9C20,11.21 16.42,13 12,13C7.58,13 4,11.21 4,9M4,14V17C4,19.21 7.58,21 12,21C16.42,21 20,19.21 20,17V14C20,16.21 16.42,18 12,18C7.58,18 4,16.21 4,14Z"
+                                          Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
+                                          Width="15" Height="15" Stretch="Uniform" Margin="0,0,10,0" VerticalAlignment="Center" />
+                                    <TextBlock Text="Dados &amp; Limpeza" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </RadioButton>
                         </StackPanel>
                     </Border>
 
-                    <!-- PAINÉIS DE CONFIGURAÇÃO -->
+                    <!-- PAINÉIS DE CONFIGURAÇÃO COM SCROLL SUAVE -->
                     <ScrollViewer Grid.Column="1"
                                   VerticalScrollBarVisibility="Auto"
                                   CanContentScroll="False"
                                   platform:SmoothScrollBehavior.IsEnabled="True"
-                                  Padding="20,16">
+                                  Padding="22,18">
                         <Grid>
-                            <!-- SEÇÃO 1: GERAL & SISTEMA -->
+                            <!-- ==================== SEÇÃO 1: GERAL & SISTEMA ==================== -->
                             <StackPanel x:Name="PanelGeneral" Visibility="Visible">
-                                <TextBlock Text="Geral e Integração com o Sistema"
-                                           Foreground="{DynamicResource PrimaryTextBrush}"
-                                           FontSize="16"
-                                           FontWeight="Bold"
-                                           Margin="0,0,0,14" />
+                                <Grid Margin="0,0,0,16">
+                                    <StackPanel>
+                                        <TextBlock Text="Geral e Integração com o Sistema"
+                                                   Foreground="{DynamicResource PrimaryTextBrush}"
+                                                   FontSize="16.5"
+                                                   FontWeight="Bold" />
+                                        <TextBlock Text="Comportamento de inicialização, foco e visualização do pop-up do ClipFlow."
+                                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                                   FontSize="11.5"
+                                                   Margin="0,3,0,0" />
+                                    </StackPanel>
+                                </Grid>
 
                                 <Border Style="{StaticResource SettingCardStyle}">
                                     <Grid>
@@ -256,9 +599,9 @@
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                        <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center">
                                             <TextBlock Text="Iniciar junto com o Windows" Foreground="{DynamicResource PrimaryTextBrush}" FontWeight="SemiBold" FontSize="13" />
-                                            <TextBlock Text="Inicia o ClipFlow automaticamente ao fazer login no Windows." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                            <TextBlock Text="Inicia o ClipFlow automaticamente no login para você sempre ter o histórico pronto." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,3,0,0" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <CheckBox x:Name="ChkStartWithWindows" Grid.Column="1" Style="{StaticResource ToggleCheckStyle}" />
                                     </Grid>
@@ -270,9 +613,9 @@
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                        <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center">
                                             <TextBlock Text="Iniciar silenciosamente na Bandeja (System Tray)" Foreground="{DynamicResource PrimaryTextBrush}" FontWeight="SemiBold" FontSize="13" />
-                                            <TextBlock Text="Quando ativado, o aplicativo inicia direto no relógio do sistema sem abrir a janela inicial." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                            <TextBlock Text="O aplicativo inicia diretamente no relógio do sistema, sem abrir nenhuma janela na tela." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,3,0,0" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <CheckBox x:Name="ChkStartMinimized" Grid.Column="1" Style="{StaticResource ToggleCheckStyle}" />
                                     </Grid>
@@ -284,9 +627,9 @@
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                        <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center">
                                             <TextBlock Text="Ocultar ao clicar fora da janela" Foreground="{DynamicResource PrimaryTextBrush}" FontWeight="SemiBold" FontSize="13" />
-                                            <TextBlock Text="Fecha o pop-up automaticamente quando você clica em outro aplicativo (comportamento padrão do Win+V)." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                            <TextBlock Text="Fecha o pop-up automaticamente ao clicar em outro programa (comportamento nativo do Win+V)." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,3,0,0" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <CheckBox x:Name="ChkCloseOnBlur" Grid.Column="1" Style="{StaticResource ToggleCheckStyle}" />
                                     </Grid>
@@ -298,39 +641,45 @@
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                        <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center">
                                             <TextBlock Text="Manter janela sempre visível no topo (Always on Top)" Foreground="{DynamicResource PrimaryTextBrush}" FontWeight="SemiBold" FontSize="13" />
-                                            <TextBlock Text="Garante que o ClipFlow apareça acima de qualquer outra janela aberta." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                            <TextBlock Text="Garante que a lista do histórico fique sempre acima de outros navegadores e aplicativos." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,3,0,0" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <CheckBox x:Name="ChkAlwaysOnTop" Grid.Column="1" Style="{StaticResource ToggleCheckStyle}" />
                                     </Grid>
                                 </Border>
                             </StackPanel>
 
-                            <!-- SEÇÃO 2: ATALHOS, BORDAS DA TELA & COLAGEM -->
+                            <!-- ==================== SEÇÃO 2: ATALHOS & BORDA ==================== -->
                             <StackPanel x:Name="PanelShortcuts" Visibility="Collapsed">
-                                <TextBlock Text="Atalhos, Ativação pelas Bordas da Tela e Colagem"
-                                           Foreground="{DynamicResource PrimaryTextBrush}"
-                                           FontSize="16"
-                                           FontWeight="Bold"
-                                           Margin="0,0,0,14" />
+                                <Grid Margin="0,0,0,16">
+                                    <StackPanel>
+                                        <TextBlock Text="Atalhos Globais, Bordas da Tela &amp; Colagem"
+                                                   Foreground="{DynamicResource PrimaryTextBrush}"
+                                                   FontSize="16.5"
+                                                   FontWeight="Bold" />
+                                        <TextBlock Text="Configure a combinação de teclas de abertura, gatilhos de mouse e velocidade de injeção."
+                                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                                   FontSize="11.5"
+                                                   Margin="0,3,0,0" />
+                                    </StackPanel>
+                                </Grid>
 
                                 <Border Style="{StaticResource SettingCardStyle}">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="195" />
+                                            <ColumnDefinition Width="215" />
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                        <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center">
                                             <TextBlock Text="Abrir ao encostar o Mouse na Borda da Tela" Foreground="{DynamicResource PrimaryTextBrush}" FontWeight="SemiBold" FontSize="13" />
-                                            <TextBlock Text="Abre o ClipFlow automaticamente quando você leva o cursor até a lateral do monitor." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                            <TextBlock Text="Abre o ClipFlow instantaneamente quando você move o ponteiro até a lateral do monitor." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,3,0,0" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <ComboBox x:Name="CmbEdgeTrigger"
                                                   Grid.Column="1"
                                                   VerticalAlignment="Center"
-                                                  Padding="8,5"
                                                   SelectionChanged="CmbEdgeTrigger_SelectionChanged">
-                                            <ComboBoxItem Content="Desativado (Só Teclado)" Tag="0" />
+                                            <ComboBoxItem Content="Desativado (Só Atalho)" Tag="0" />
                                             <ComboBoxItem Content="Somente Borda Esquerda" Tag="1" />
                                             <ComboBoxItem Content="Somente Borda Direita" Tag="2" />
                                             <ComboBoxItem Content="Ambas (Esquerda e Direita)" Tag="3" />
@@ -342,13 +691,13 @@
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="195" />
+                                            <ColumnDefinition Width="215" />
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                        <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center">
                                             <TextBlock Text="Sensibilidade / Tempo na Borda" Foreground="{DynamicResource PrimaryTextBrush}" FontWeight="SemiBold" FontSize="13" />
-                                            <TextBlock Text="Tempo que o mouse precisa permanecer encostado na lateral para evitar aberturas por acidente." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                            <TextBlock Text="Tempo de repouso na borda antes de abrir para prevenir aberturas acidentais." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,3,0,0" TextWrapping="Wrap" />
                                         </StackPanel>
-                                        <ComboBox x:Name="CmbEdgeDelay" Grid.Column="1" VerticalAlignment="Center" Padding="8,5">
+                                        <ComboBox x:Name="CmbEdgeDelay" Grid.Column="1" VerticalAlignment="Center">
                                             <ComboBoxItem Content="Instantâneo (100 ms)" Tag="100" />
                                             <ComboBoxItem Content="Rápido / Padrão (220 ms)" Tag="220" />
                                             <ComboBoxItem Content="Equilibrado (380 ms)" Tag="380" />
@@ -361,13 +710,13 @@
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="195" />
+                                            <ColumnDefinition Width="215" />
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                        <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center">
                                             <TextBlock Text="Atalho Global de Teclado" Foreground="{DynamicResource PrimaryTextBrush}" FontWeight="SemiBold" FontSize="13" />
-                                            <TextBlock Text="Combinação de teclas para abrir/fechar o ClipFlow em qualquer lugar do Windows." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                            <TextBlock Text="Combinação do sistema para exibir ou ocultar a janela de qualquer lugar." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,3,0,0" TextWrapping="Wrap" />
                                         </StackPanel>
-                                        <ComboBox x:Name="CmbShortcut" Grid.Column="1" VerticalAlignment="Center" Padding="8,5">
+                                        <ComboBox x:Name="CmbShortcut" Grid.Column="1" VerticalAlignment="Center">
                                             <ComboBoxItem Content="Ctrl + Shift + V" Tag="0" />
                                             <ComboBoxItem Content="Alt + V" Tag="1" />
                                             <ComboBoxItem Content="Ctrl + Alt + V" Tag="2" />
@@ -383,9 +732,9 @@
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                        <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center">
                                             <TextBlock Text="Colar automaticamente ao pressionar Enter / Duplo Clique" Foreground="{DynamicResource PrimaryTextBrush}" FontWeight="SemiBold" FontSize="13" />
-                                            <TextBlock Text="Se desativado, o item será apenas colocado na área de transferência sem simular o Ctrl+V." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                            <TextBlock Text="Injeta o conteúdo direto no aplicativo anterior (se desativado, apenas copia para a área de transferência)." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,3,0,0" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <CheckBox x:Name="ChkPasteDirectly" Grid.Column="1" Style="{StaticResource ToggleCheckStyle}" />
                                     </Grid>
@@ -397,9 +746,9 @@
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                        <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center">
                                             <TextBlock Text="Colar sempre como Texto Puro (Sem Formatação)" Foreground="{DynamicResource PrimaryTextBrush}" FontWeight="SemiBold" FontSize="13" />
-                                            <TextBlock Text="Remove fontes, cores e HTML automaticamente ao colar (mesmo sem segurar Shift)." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                            <TextBlock Text="Remove estilos, fontes, tabelas e cores HTML automaticamente ao colar." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,3,0,0" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <CheckBox x:Name="ChkDefaultPlainText" Grid.Column="1" Style="{StaticResource ToggleCheckStyle}" />
                                     </Grid>
@@ -411,9 +760,9 @@
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                        <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center">
                                             <TextBlock Text="Mover item para o topo quando for colado" Foreground="{DynamicResource PrimaryTextBrush}" FontWeight="SemiBold" FontSize="13" />
-                                            <TextBlock Text="Mantém os itens que você mais usa sempre no topo da lista." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                            <TextBlock Text="Coloca os itens usados com mais frequência sempre no início da lista." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,3,0,0" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <CheckBox x:Name="ChkMoveToTopOnPaste" Grid.Column="1" Style="{StaticResource ToggleCheckStyle}" />
                                     </Grid>
@@ -423,13 +772,13 @@
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="170" />
+                                            <ColumnDefinition Width="215" />
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                        <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center">
                                             <TextBlock Text="Velocidade de Injeção de Colagem (Delay)" Foreground="{DynamicResource PrimaryTextBrush}" FontWeight="SemiBold" FontSize="13" />
-                                            <TextBlock Text="Tempo de espera ao devolver o foco para a janela anterior antes de enviar Ctrl+V." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                            <TextBlock Text="Ajusta o tempo de foco antes de disparar o Ctrl+V (aumente se usar máquinas virtuais)." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,3,0,0" TextWrapping="Wrap" />
                                         </StackPanel>
-                                        <ComboBox x:Name="CmbPasteDelay" Grid.Column="1" VerticalAlignment="Center" Padding="8,5">
+                                        <ComboBox x:Name="CmbPasteDelay" Grid.Column="1" VerticalAlignment="Center">
                                             <ComboBoxItem Content="Ultra Rápido (15 ms)" Tag="15" />
                                             <ComboBoxItem Content="Padrão (35 ms)" Tag="35" />
                                             <ComboBoxItem Content="Compatível (65 ms)" Tag="65" />
@@ -439,25 +788,32 @@
                                 </Border>
                             </StackPanel>
 
-                            <!-- SEÇÃO 3: HISTÓRICO & CAPTURA -->
+                            <!-- ==================== SEÇÃO 3: HISTÓRICO & CAPTURA ==================== -->
                             <StackPanel x:Name="PanelHistory" Visibility="Collapsed">
-                                <TextBlock Text="Regras de Histórico e Tipos de Captura"
-                                           Foreground="{DynamicResource PrimaryTextBrush}"
-                                           FontSize="16"
-                                           FontWeight="Bold"
-                                           Margin="0,0,0,14" />
+                                <Grid Margin="0,0,0,16">
+                                    <StackPanel>
+                                        <TextBlock Text="Capacidade do Histórico &amp; Tipos de Dados"
+                                                   Foreground="{DynamicResource PrimaryTextBrush}"
+                                                   FontSize="16.5"
+                                                   FontWeight="Bold" />
+                                        <TextBlock Text="Defina a quantidade de itens salvos e os tipos de conteúdo interceptados pelo ClipFlow."
+                                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                                   FontSize="11.5"
+                                                   Margin="0,3,0,0" />
+                                    </StackPanel>
+                                </Grid>
 
                                 <Border Style="{StaticResource SettingCardStyle}">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="170" />
+                                            <ColumnDefinition Width="200" />
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                        <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center">
                                             <TextBlock Text="Limite Máximo do Histórico" Foreground="{DynamicResource PrimaryTextBrush}" FontWeight="SemiBold" FontSize="13" />
-                                            <TextBlock Text="Quantidade máxima de itens comuns salvos. Itens FIXADOS nunca contam no limite e nunca são apagados!" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                            <TextBlock Text="Capacidade máxima de cópias comuns. Seus itens FIXADOS nunca contam no limite e nunca são apagados." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,3,0,0" TextWrapping="Wrap" />
                                         </StackPanel>
-                                        <ComboBox x:Name="CmbMaxHistory" Grid.Column="1" VerticalAlignment="Center" Padding="8,5">
+                                        <ComboBox x:Name="CmbMaxHistory" Grid.Column="1" VerticalAlignment="Center">
                                             <ComboBoxItem Content="50 itens" Tag="50" />
                                             <ComboBoxItem Content="100 itens" Tag="100" />
                                             <ComboBoxItem Content="200 itens (Padrão)" Tag="200" />
@@ -473,9 +829,9 @@
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                        <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center">
                                             <TextBlock Text="Exibir itens Fixados também na aba 'Texto'" Foreground="{DynamicResource PrimaryTextBrush}" FontWeight="SemiBold" FontSize="13" />
-                                            <TextBlock Text="Se desativado, a aba 'Texto' mostrará apenas os textos copiados não-fixados, deixando os Fixados exclusivos." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                            <TextBlock Text="Se desativado, a aba 'Texto' mostrará apenas textos normais, tornando os Fixados exclusivos da sua própria aba." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,3,0,0" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <CheckBox x:Name="ChkShowPinnedInTextTab" Grid.Column="1" Style="{StaticResource ToggleCheckStyle}" />
                                     </Grid>
@@ -487,9 +843,9 @@
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                        <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center">
                                             <TextBlock Text="Capturar Textos, Links, Cores e Códigos" Foreground="{DynamicResource PrimaryTextBrush}" FontWeight="SemiBold" FontSize="13" />
-                                            <TextBlock Text="Salva textos copiados e classifica automaticamente links, e-mails e cores Hex." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                            <TextBlock Text="Armazena textos copiados e detecta links, e-mails, números de telefone e cores Hex." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,3,0,0" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <CheckBox x:Name="ChkCaptureText" Grid.Column="1" Style="{StaticResource ToggleCheckStyle}" />
                                     </Grid>
@@ -501,9 +857,9 @@
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                        <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center">
                                             <TextBlock Text="Capturar Imagens e Print Screen" Foreground="{DynamicResource PrimaryTextBrush}" FontWeight="SemiBold" FontSize="13" />
-                                            <TextBlock Text="Salva capturas de tela (Win+Shift+S) e imagens copiadas com miniatura visual." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                            <TextBlock Text="Salva prints (Win+Shift+S) e fotos copiadas na internet, gerando miniaturas rápidas." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,3,0,0" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <CheckBox x:Name="ChkCaptureImages" Grid.Column="1" Style="{StaticResource ToggleCheckStyle}" />
                                     </Grid>
@@ -515,9 +871,9 @@
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                        <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center">
                                             <TextBlock Text="Capturar Arquivos Copiados no Windows Explorer" Foreground="{DynamicResource PrimaryTextBrush}" FontWeight="SemiBold" FontSize="13" />
-                                            <TextBlock Text="Registra listas de arquivos copiados no Explorer para colagem posterior." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                            <TextBlock Text="Registra caminhos de arquivos e pastas copiados para você colar listas com facilidade." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,3,0,0" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <CheckBox x:Name="ChkCaptureFiles" Grid.Column="1" Style="{StaticResource ToggleCheckStyle}" />
                                     </Grid>
@@ -527,13 +883,13 @@
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="170" />
+                                            <ColumnDefinition Width="200" />
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                        <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center">
                                             <TextBlock Text="Tamanho Máximo por Texto Copiado" Foreground="{DynamicResource PrimaryTextBrush}" FontWeight="SemiBold" FontSize="13" />
-                                            <TextBlock Text="Ignora textos gigantescos acima deste limite para preservar a memória RAM." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                            <TextBlock Text="Ignora arquivos de texto gigantescos que excedam o limite para não pesar na memória RAM." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,3,0,0" TextWrapping="Wrap" />
                                         </StackPanel>
-                                        <ComboBox x:Name="CmbMaxTextSize" Grid.Column="1" VerticalAlignment="Center" Padding="8,5">
+                                        <ComboBox x:Name="CmbMaxTextSize" Grid.Column="1" VerticalAlignment="Center">
                                             <ComboBoxItem Content="256 KB" Tag="256" />
                                             <ComboBoxItem Content="512 KB" Tag="512" />
                                             <ComboBoxItem Content="1 MB (Padrão)" Tag="1024" />
@@ -543,29 +899,257 @@
                                 </Border>
                             </StackPanel>
 
-                            <!-- SEÇÃO 4: APARÊNCIA & TEMA -->
-                            <StackPanel x:Name="PanelAppearance" Visibility="Collapsed">
-                                <TextBlock Text="Tema Visual, Posição e Dimensões da Janela"
-                                           Foreground="{DynamicResource PrimaryTextBrush}"
-                                           FontSize="16"
-                                           FontWeight="Bold"
-                                           Margin="0,0,0,14" />
+                            <!-- ==================== SEÇÃO 7: TEXTOS RÁPIDOS & MODIFICADORES ==================== -->
+                            <StackPanel x:Name="PanelModifiers" Visibility="Collapsed">
+                                <Grid Margin="0,0,0,14">
+                                    <StackPanel>
+                                        <TextBlock Text="Textos Rápidos, Modelos &amp; Modificadores"
+                                                   Foreground="{DynamicResource PrimaryTextBrush}"
+                                                   FontSize="16.5"
+                                                   FontWeight="Bold" />
+                                        <TextBlock Text="Crie saudações ou textos automáticos (como 'Bom dia!', 'Boa tarde!') para anexar antes ou depois de colar com Alt+1 a Alt+9."
+                                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                                   FontSize="11.5"
+                                                   Margin="0,3,0,0"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Grid>
 
-                                <!-- OPÇÃO DE TEMA CLARO / ESCURO -->
+                                <!-- Card do Editor (Adicionar / Editar) -->
+                                <Border Style="{StaticResource SettingCardStyle}" Padding="18,16" Margin="0,0,0,14">
+                                    <StackPanel>
+                                        <Grid Margin="0,0,0,12">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <Border Background="#1E3A8A" CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
+                                                    <TextBlock Text="EDITOR" Foreground="#93C5FD" FontWeight="Bold" FontSize="10" />
+                                                </Border>
+                                                <TextBlock x:Name="TxtEditorTitle"
+                                                           Text="Adicionar Novo Texto / Modificador"
+                                                           Foreground="{DynamicResource AccentTextBrush}"
+                                                           FontWeight="Bold"
+                                                           FontSize="13" />
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <!-- Linha 1: Nome no Chip e Posição -->
+                                        <Grid Margin="0,0,0,10">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="14" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="Nome no Chip (Rótulo Curto):"
+                                                           Foreground="{DynamicResource PrimaryTextBrush}"
+                                                           FontWeight="SemiBold"
+                                                           FontSize="12"
+                                                           Margin="0,0,0,5" />
+                                                <TextBox x:Name="TxtModLabel"
+                                                         TextChanged="ModEditorField_Changed" />
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="2">
+                                                <TextBlock Text="Onde Inserir:"
+                                                           Foreground="{DynamicResource PrimaryTextBrush}"
+                                                           FontWeight="SemiBold"
+                                                           FontSize="12"
+                                                           Margin="0,0,0,5" />
+                                                <ComboBox x:Name="CmbModPosition"
+                                                          SelectionChanged="ModEditorField_Changed">
+                                                    <ComboBoxItem Content="No Começo (Prefixo)" Tag="0" IsSelected="True" />
+                                                    <ComboBoxItem Content="No Fim (Sufixo)" Tag="1" />
+                                                </ComboBox>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <!-- Linha 2: Texto a Inserir -->
+                                        <StackPanel Margin="0,0,0,10">
+                                            <TextBlock Text="Texto a Inserir:"
+                                                       Foreground="{DynamicResource PrimaryTextBrush}"
+                                                       FontWeight="SemiBold"
+                                                       FontSize="12"
+                                                       Margin="0,0,0,5" />
+                                            <TextBox x:Name="TxtModText"
+                                                     AcceptsReturn="True"
+                                                     MinHeight="36"
+                                                     MaxHeight="80"
+                                                     TextChanged="ModEditorField_Changed" />
+                                        </StackPanel>
+
+                                        <!-- Linha 3: Espaçamento e Auto-Reset -->
+                                        <Grid Margin="0,0,0,12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="14" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="Espaçamento / Quebra de Linha:"
+                                                           Foreground="{DynamicResource PrimaryTextBrush}"
+                                                           FontWeight="SemiBold"
+                                                           FontSize="12"
+                                                           Margin="0,0,0,5" />
+                                                <ComboBox x:Name="CmbModSpacing"
+                                                          SelectionChanged="ModEditorField_Changed">
+                                                    <ComboBoxItem Content="Quebra dupla (novo parágrafo)" Tag="0" IsSelected="True" />
+                                                    <ComboBoxItem Content="Quebra simples (nova linha)" Tag="1" />
+                                                    <ComboBoxItem Content="Espaço simples" Tag="2" />
+                                                    <ComboBoxItem Content="Sem espaço (direto)" Tag="3" />
+                                                </ComboBox>
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,18,0,0">
+                                                <CheckBox x:Name="ChkModAutoReset"
+                                                          Style="{StaticResource ToggleCheckStyle}"
+                                                          Content="Resetar seleção após colar"
+                                                          IsChecked="True"
+                                                          ToolTip="Ao colar, aplica o texto e volta para 'Nenhum' automaticamente" />
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <!-- Pré-visualização ao vivo -->
+                                        <Border Background="{DynamicResource HeaderFooterBgBrush}"
+                                                BorderBrush="{DynamicResource DividerBorderBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="6"
+                                                Padding="12,10"
+                                                Margin="0,0,0,14">
+                                            <StackPanel>
+                                                <TextBlock Text="Prévia do Texto Colado:"
+                                                           Foreground="{DynamicResource SecondaryTextBrush}"
+                                                           FontSize="11"
+                                                           FontWeight="SemiBold"
+                                                           Margin="0,0,0,5" />
+                                                <TextBlock x:Name="TxtModPreview"
+                                                           Foreground="{DynamicResource PrimaryTextBrush}"
+                                                           FontSize="12"
+                                                           TextWrapping="Wrap"
+                                                           FontFamily="Consolas, Segoe UI" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Botões de Ação do Editor -->
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button x:Name="BtnSaveModifier"
+                                                    Style="{StaticResource PrimaryActionButtonStyle}"
+                                                    Content="Salvar Modificador"
+                                                    Margin="0,0,8,0"
+                                                    Click="SaveModifierItem_Click" />
+                                            <Button x:Name="BtnCancelModifier"
+                                                    Style="{StaticResource ActionButtonStyle}"
+                                                    Content="Cancelar / Limpar"
+                                                    Click="CancelModifierItem_Click" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Lista de Modificadores Cadastrados -->
+                                <TextBlock Text="Modificadores Cadastrados (Atalhos Alt+1 a Alt+9):"
+                                           Foreground="{DynamicResource PrimaryTextBrush}"
+                                           FontWeight="SemiBold"
+                                           FontSize="13"
+                                           Margin="0,4,0,10" />
+
+                                <ItemsControl x:Name="ModifiersItemsList">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Style="{StaticResource SettingCardStyle}" Padding="14,12" Margin="0,0,0,8">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                                            <Border Background="#1E3A8A" CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
+                                                                <TextBlock Text="{Binding Label}" Foreground="#93C5FD" FontWeight="Bold" FontSize="11" />
+                                                            </Border>
+                                                            <Border Background="{DynamicResource ButtonBgBrush}" CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
+                                                                <TextBlock Text="{Binding PositionDescription}" Foreground="{DynamicResource AccentTextBrush}" FontWeight="SemiBold" FontSize="11" />
+                                                            </Border>
+                                                            <TextBlock Text="{Binding SpacingDescription, StringFormat='• {0}'}" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" VerticalAlignment="Center" />
+                                                        </StackPanel>
+
+                                                        <TextBlock Text="{Binding Text, StringFormat='Texto: &quot;{0}&quot;'}"
+                                                                   Foreground="{DynamicResource PrimaryTextBrush}"
+                                                                   FontSize="12"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   MaxHeight="36" />
+
+                                                        <TextBlock Text="{Binding AutoReset, StringFormat='Auto-reset após colar: {0}'}"
+                                                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                                                   FontSize="10.5"
+                                                                   Margin="0,4,0,0" />
+                                                    </StackPanel>
+
+                                                    <!-- Botões de Ação na Linha -->
+                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <Button Style="{StaticResource ActionButtonStyle}"
+                                                                Content="▲"
+                                                                Padding="7,5"
+                                                                Margin="0,0,4,0"
+                                                                ToolTip="Mover para cima"
+                                                                Tag="{Binding}"
+                                                                Click="MoveUpModifier_Click" />
+                                                        <Button Style="{StaticResource ActionButtonStyle}"
+                                                                Content="▼"
+                                                                Padding="7,5"
+                                                                Margin="0,0,4,0"
+                                                                ToolTip="Mover para baixo"
+                                                                Tag="{Binding}"
+                                                                Click="MoveDownModifier_Click" />
+                                                        <Button Style="{StaticResource ActionButtonStyle}"
+                                                                Content="Editar"
+                                                                Padding="9,5"
+                                                                Margin="0,0,4,0"
+                                                                Tag="{Binding}"
+                                                                Click="EditModifier_Click" />
+                                                        <Button Style="{StaticResource ActionButtonStyle}"
+                                                                Content="✕"
+                                                                Padding="8,5"
+                                                                Foreground="#EF4444"
+                                                                ToolTip="Excluir modificador"
+                                                                Tag="{Binding}"
+                                                                Click="DeleteModifier_Click" />
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+
+                            <!-- ==================== SEÇÃO 4: APARÊNCIA & TEMA ==================== -->
+                            <StackPanel x:Name="PanelAppearance" Visibility="Collapsed">
+                                <Grid Margin="0,0,0,16">
+                                    <StackPanel>
+                                        <TextBlock Text="Tema Visual &amp; Dimensões da Janela"
+                                                   Foreground="{DynamicResource PrimaryTextBrush}"
+                                                   FontSize="16.5"
+                                                   FontWeight="Bold" />
+                                        <TextBlock Text="Ajuste o modo claro/escuro, dimensões, opacidade e ponto de abertura na tela."
+                                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                                   FontSize="11.5"
+                                                   Margin="0,3,0,0" />
+                                    </StackPanel>
+                                </Grid>
+
                                 <Border Style="{StaticResource SettingCardStyle}">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="180" />
+                                            <ColumnDefinition Width="200" />
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                        <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center">
                                             <TextBlock Text="Tema Visual (Claro / Escuro)" Foreground="{DynamicResource PrimaryTextBrush}" FontWeight="SemiBold" FontSize="13" />
-                                            <TextBlock Text="Alterna instantaneamente todas as cores do ClipFlow entre o modo Escuro e o modo Claro." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                            <TextBlock Text="Alterna instantaneamente todas as cores da interface entre o modo Escuro e o modo Claro." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,3,0,0" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <ComboBox x:Name="CmbTheme"
                                                   Grid.Column="1"
                                                   VerticalAlignment="Center"
-                                                  Padding="8,5"
                                                   SelectionChanged="CmbTheme_SelectionChanged">
                                             <ComboBoxItem Content="🌙 Tema Escuro (Dark)" Tag="0" />
                                             <ComboBoxItem Content="☀️ Tema Claro (Light)" Tag="1" />
@@ -577,13 +1161,13 @@
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="225" />
+                                            <ColumnDefinition Width="230" />
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                        <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center">
                                             <TextBlock Text="Posição de Abertura da Janela" Foreground="{DynamicResource PrimaryTextBrush}" FontWeight="SemiBold" FontSize="13" />
-                                            <TextBlock Text="Escolha onde o ClipFlow deve aparecer na tela (próximo ao mouse, centralizado, nas bordas ou nos cantos)." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                            <TextBlock Text="Escolha onde o pop-up deve brotar na tela (cursor, centro, laterais ou cantos)." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,3,0,0" TextWrapping="Wrap" />
                                         </StackPanel>
-                                        <ComboBox x:Name="CmbSpawnPosition" Grid.Column="1" VerticalAlignment="Center" Padding="8,5">
+                                        <ComboBox x:Name="CmbSpawnPosition" Grid.Column="1" VerticalAlignment="Center">
                                             <ComboBoxItem Content="Próximo ao Cursor do Mouse" Tag="0" />
                                             <ComboBoxItem Content="Centralizado no Monitor" Tag="1" />
                                             <ComboBoxItem Content="Na Borda Esquerda da Tela" Tag="2" />
@@ -601,16 +1185,15 @@
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="225" />
+                                            <ColumnDefinition Width="230" />
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                                            <TextBlock Text="Abrir ao Levar o Mouse até as Bordas (Quais Bordas)" Foreground="{DynamicResource PrimaryTextBrush}" FontWeight="SemiBold" FontSize="13" />
-                                            <TextBlock Text="Define em qual lateral da tela encostar o mouse faz o ClipFlow aparecer automaticamente." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                        <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center">
+                                            <TextBlock Text="Abrir ao Levar o Mouse até as Bordas" Foreground="{DynamicResource PrimaryTextBrush}" FontWeight="SemiBold" FontSize="13" />
+                                            <TextBlock Text="Define em qual lateral da tela encostar o mouse faz a janela abrir." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,3,0,0" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <ComboBox x:Name="CmbEdgeTriggerAppearance"
                                                   Grid.Column="1"
                                                   VerticalAlignment="Center"
-                                                  Padding="8,5"
                                                   SelectionChanged="CmbEdgeTriggerAppearance_SelectionChanged">
                                             <ComboBoxItem Content="Desativado (Não abrir pela borda)" Tag="0" />
                                             <ComboBoxItem Content="Somente Borda Esquerda" Tag="1" />
@@ -624,13 +1207,13 @@
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="180" />
+                                            <ColumnDefinition Width="200" />
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                        <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center">
                                             <TextBlock Text="Tamanho da Janela do ClipFlow" Foreground="{DynamicResource PrimaryTextBrush}" FontWeight="SemiBold" FontSize="13" />
-                                            <TextBlock Text="Escolha o tamanho ideal para a sua resolução de tela." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                            <TextBlock Text="Escolha o tamanho mais confortável para sua resolução de monitor." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,3,0,0" TextWrapping="Wrap" />
                                         </StackPanel>
-                                        <ComboBox x:Name="CmbWindowSize" Grid.Column="1" VerticalAlignment="Center" Padding="8,5">
+                                        <ComboBox x:Name="CmbWindowSize" Grid.Column="1" VerticalAlignment="Center">
                                             <ComboBoxItem Content="Compacta (400 × 520)" Tag="400x520" />
                                             <ComboBoxItem Content="Padrão (440 × 580)" Tag="440x580" />
                                             <ComboBoxItem Content="Ampla (520 × 680)" Tag="520x680" />
@@ -642,13 +1225,13 @@
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="180" />
+                                            <ColumnDefinition Width="200" />
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                        <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center">
                                             <TextBlock Text="Opacidade da Janela" Foreground="{DynamicResource PrimaryTextBrush}" FontWeight="SemiBold" FontSize="13" />
-                                            <TextBlock Text="Controla o nível de transparência da janela principal." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                            <TextBlock Text="Controla a translucidez para você poder enxergar sob a janela." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,3,0,0" TextWrapping="Wrap" />
                                         </StackPanel>
-                                        <ComboBox x:Name="CmbOpacity" Grid.Column="1" VerticalAlignment="Center" Padding="8,5">
+                                        <ComboBox x:Name="CmbOpacity" Grid.Column="1" VerticalAlignment="Center">
                                             <ComboBoxItem Content="100% (Sólida)" Tag="1.0" />
                                             <ComboBoxItem Content="95% (Suave)" Tag="0.95" />
                                             <ComboBoxItem Content="90% (Translúcida)" Tag="0.90" />
@@ -663,22 +1246,29 @@
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                        <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center">
                                             <TextBlock Text="Exibir dicas de atalhos no rodapé" Foreground="{DynamicResource PrimaryTextBrush}" FontWeight="SemiBold" FontSize="13" />
-                                            <TextBlock Text="Mostra os atalhos rápidos (Enter, Ctrl+P, F2) na barra inferior da janela." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                            <TextBlock Text="Mostra os lembretes de teclas úteis (Enter, F2, Delete) na barra inferior." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,3,0,0" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <CheckBox x:Name="ChkShowFooterHints" Grid.Column="1" Style="{StaticResource ToggleCheckStyle}" />
                                     </Grid>
                                 </Border>
                             </StackPanel>
 
-                            <!-- SEÇÃO 5: PRIVACIDADE & SENHAS -->
+                            <!-- ==================== SEÇÃO 5: PRIVACIDADE & SENHAS ==================== -->
                             <StackPanel x:Name="PanelPrivacy" Visibility="Collapsed">
-                                <TextBlock Text="Privacidade, Filtros de Senha e Segurança"
-                                           Foreground="{DynamicResource PrimaryTextBrush}"
-                                           FontSize="16"
-                                           FontWeight="Bold"
-                                           Margin="0,0,0,14" />
+                                <Grid Margin="0,0,0,16">
+                                    <StackPanel>
+                                        <TextBlock Text="Privacidade, Filtros de Senha &amp; Segurança"
+                                                   Foreground="{DynamicResource PrimaryTextBrush}"
+                                                   FontSize="16.5"
+                                                   FontWeight="Bold" />
+                                        <TextBlock Text="Proteja dados sensíveis impedindo que credenciais e apps confidenciais sejam registrados."
+                                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                                   FontSize="11.5"
+                                                   Margin="0,3,0,0" />
+                                    </StackPanel>
+                                </Grid>
 
                                 <Border Style="{StaticResource SettingCardStyle}">
                                     <Grid>
@@ -686,9 +1276,9 @@
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                        <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center">
                                             <TextBlock Text="Ignorar Gerenciadores de Senha Automaticamente" Foreground="{DynamicResource PrimaryTextBrush}" FontWeight="SemiBold" FontSize="13" />
-                                            <TextBlock Text="Respeita as flags de segurança do Windows e ignora cópias vindas de cofres de senha." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                            <TextBlock Text="Respeita as flags de segurança do Windows e ignora senhas copiadas do 1Password, Bitwarden, KeePass, etc." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,3,0,0" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <CheckBox x:Name="ChkIgnorePasswordManagers" Grid.Column="1" Style="{StaticResource ToggleCheckStyle}" />
                                     </Grid>
@@ -700,9 +1290,9 @@
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                        <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center">
                                             <TextBlock Text="Bloquear captura de Chaves Privadas e Tokens de API" Foreground="{DynamicResource PrimaryTextBrush}" FontWeight="SemiBold" FontSize="13" />
-                                            <TextBlock Text="Não salva no histórico tokens começando com sk-, ghp_, AKIA ou blocos PRIVATE KEY." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                            <TextBlock Text="Detecta e descarta automaticamente tokens como sk-, ghp_, AKIA e blocos PRIVATE KEY." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,3,0,0" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <CheckBox x:Name="ChkIgnoreSecrets" Grid.Column="1" Style="{StaticResource ToggleCheckStyle}" />
                                     </Grid>
@@ -711,26 +1301,26 @@
                                 <Border Style="{StaticResource SettingCardStyle}">
                                     <StackPanel>
                                         <TextBlock Text="Aplicativos Bloqueados (Separados por vírgula)" Foreground="{DynamicResource PrimaryTextBrush}" FontWeight="SemiBold" FontSize="13" />
-                                        <TextBlock Text="Qualquer Ctrl+C feito dentro destes programas será ignorado pelo ClipFlow:" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,2,0,8" TextWrapping="Wrap" />
-                                        <TextBox x:Name="TxtExcludedApps"
-                                                 Background="{DynamicResource InputBgBrush}"
-                                                 Foreground="{DynamicResource PrimaryTextBrush}"
-                                                 CaretBrush="#2563EB"
-                                                 BorderBrush="{DynamicResource InputBorderBrush}"
-                                                 BorderThickness="1"
-                                                 Padding="8,6"
-                                                 FontSize="12.5" />
+                                        <TextBlock Text="Qualquer cópia (Ctrl+C) originada dentro dos programas desta lista será ignorada:" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,3,0,8" TextWrapping="Wrap" />
+                                        <TextBox x:Name="TxtExcludedApps" />
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
 
-                            <!-- SEÇÃO 6: DADOS & LIMPEZA -->
+                            <!-- ==================== SEÇÃO 6: DADOS & LIMPEZA ==================== -->
                             <StackPanel x:Name="PanelData" Visibility="Collapsed">
-                                <TextBlock Text="Armazenamento Local, Backup e Limpeza"
-                                           Foreground="{DynamicResource PrimaryTextBrush}"
-                                           FontSize="16"
-                                           FontWeight="Bold"
-                                           Margin="0,0,0,14" />
+                                <Grid Margin="0,0,0,16">
+                                    <StackPanel>
+                                        <TextBlock Text="Armazenamento Local &amp; Gerenciamento de Dados"
+                                                   Foreground="{DynamicResource PrimaryTextBrush}"
+                                                   FontSize="16.5"
+                                                   FontWeight="Bold" />
+                                        <TextBlock Text="Acesse a pasta de arquivos locais, libere espaço no disco ou restaure padrões."
+                                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                                   FontSize="11.5"
+                                                   Margin="0,3,0,0" />
+                                    </StackPanel>
+                                </Grid>
 
                                 <Border Style="{StaticResource SettingCardStyle}">
                                     <StackPanel>
@@ -747,16 +1337,13 @@
                                 <Border Style="{StaticResource SettingCardStyle}">
                                     <StackPanel>
                                         <TextBlock Text="Gerenciamento de Histórico" Foreground="{DynamicResource PrimaryTextBrush}" FontWeight="SemiBold" FontSize="13" />
-                                        <TextBlock x:Name="TxtStorageStats" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="12" Margin="0,4,0,10" />
+                                        <TextBlock x:Name="TxtStorageStats" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="12" Margin="0,4,0,12" />
                                         <StackPanel Orientation="Horizontal">
                                             <Button Style="{StaticResource ActionButtonStyle}"
                                                     Content="Limpar Histórico Não-Fixado"
                                                     Margin="0,0,10,0"
                                                     Click="ClearUnpinned_Click" />
-                                            <Button Style="{StaticResource ActionButtonStyle}"
-                                                    Background="#DC2626"
-                                                    BorderBrush="#B91C1C"
-                                                    Foreground="#FFFFFF"
+                                            <Button Style="{StaticResource DangerActionButtonStyle}"
                                                     Content="Apagar Tudo (Incluindo Fixados)"
                                                     Click="ClearAll_Click" />
                                         </StackPanel>
@@ -769,9 +1356,9 @@
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                        <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center">
                                             <TextBlock Text="Restaurar Padrões de Fábrica" Foreground="{DynamicResource PrimaryTextBrush}" FontWeight="SemiBold" FontSize="13" />
-                                            <TextBlock Text="Volta todas as opções e atalhos para a configuração recomendada original." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                            <TextBlock Text="Restaura todas as opções, bordas e limites para a configuração recomendada original." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" Margin="0,3,0,0" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <Button Grid.Column="1"
                                                 Style="{StaticResource ActionButtonStyle}"
@@ -780,265 +1367,39 @@
                                     </Grid>
                                 </Border>
                             </StackPanel>
-
-                            <!-- SEÇÃO 7: TEXTOS RÁPIDOS & MODIFICADORES -->
-                            <StackPanel x:Name="PanelModifiers" Visibility="Collapsed">
-                                <TextBlock Text="Textos Rápidos, Saudações e Modelos"
-                                           Foreground="{DynamicResource PrimaryTextBrush}"
-                                           FontSize="16"
-                                           FontWeight="Bold"
-                                           Margin="0,0,0,4" />
-                                <TextBlock Text="Adicione saudações ou textos prévios (como 'Bom dia!', 'Boa tarde!') no início ou fim do que você copiar, com controle total de quebra de linha."
-                                           Foreground="{DynamicResource SecondaryTextBrush}"
-                                           FontSize="12"
-                                           Margin="0,0,0,14"
-                                           TextWrapping="Wrap" />
-
-                                <!-- Card de Ação: Adicionar / Editar Modificador -->
-                                <Border Style="{StaticResource SettingCardStyle}">
-                                    <StackPanel>
-                                        <TextBlock x:Name="TxtEditorTitle"
-                                                   Text="Adicionar Novo Texto / Modificador"
-                                                   Foreground="{DynamicResource AccentTextBrush}"
-                                                   FontWeight="Bold"
-                                                   FontSize="13"
-                                                   Margin="0,0,0,10" />
-
-                                        <!-- Linha 1: Rótulo do Chip e Posição -->
-                                        <Grid Margin="0,0,0,10">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="14" />
-                                                <ColumnDefinition Width="*" />
-                                            </Grid.ColumnDefinitions>
-
-                                            <StackPanel Grid.Column="0">
-                                                <TextBlock Text="Nome no Chip (Rótulo Curto):"
-                                                           Foreground="{DynamicResource PrimaryTextBrush}"
-                                                           FontWeight="SemiBold"
-                                                           FontSize="12"
-                                                           Margin="0,0,0,4" />
-                                                <TextBox x:Name="TxtModLabel"
-                                                         Background="{DynamicResource InputBgBrush}"
-                                                         Foreground="{DynamicResource PrimaryTextBrush}"
-                                                         BorderBrush="{DynamicResource InputBorderBrush}"
-                                                         BorderThickness="1"
-                                                         Padding="8,6"
-                                                         FontSize="12"
-                                                         TextChanged="ModEditorField_Changed" />
-                                            </StackPanel>
-
-                                            <StackPanel Grid.Column="2">
-                                                <TextBlock Text="Onde Inserir:"
-                                                           Foreground="{DynamicResource PrimaryTextBrush}"
-                                                           FontWeight="SemiBold"
-                                                           FontSize="12"
-                                                           Margin="0,0,0,4" />
-                                                <ComboBox x:Name="CmbModPosition"
-                                                          SelectionChanged="ModEditorField_Changed">
-                                                    <ComboBoxItem Content="No Começo (Prefixo)" Tag="0" IsSelected="True" />
-                                                    <ComboBoxItem Content="No Fim (Sufixo)" Tag="1" />
-                                                </ComboBox>
-                                            </StackPanel>
-                                        </Grid>
-
-                                        <!-- Linha 2: Texto a Inserir -->
-                                        <StackPanel Margin="0,0,0,10">
-                                            <TextBlock Text="Texto a Inserir:"
-                                                       Foreground="{DynamicResource PrimaryTextBrush}"
-                                                       FontWeight="SemiBold"
-                                                       FontSize="12"
-                                                       Margin="0,0,0,4" />
-                                            <TextBox x:Name="TxtModText"
-                                                     Background="{DynamicResource InputBgBrush}"
-                                                     Foreground="{DynamicResource PrimaryTextBrush}"
-                                                     BorderBrush="{DynamicResource InputBorderBrush}"
-                                                     BorderThickness="1"
-                                                     Padding="8,6"
-                                                     FontSize="12"
-                                                     AcceptsReturn="True"
-                                                     MaxHeight="80"
-                                                     TextChanged="ModEditorField_Changed" />
-                                        </StackPanel>
-
-                                        <!-- Linha 3: Espaçamento e Quebra de Linha -->
-                                        <Grid Margin="0,0,0,10">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="14" />
-                                                <ColumnDefinition Width="*" />
-                                            </Grid.ColumnDefinitions>
-
-                                            <StackPanel Grid.Column="0">
-                                                <TextBlock Text="Espaçamento / Quebra:"
-                                                           Foreground="{DynamicResource PrimaryTextBrush}"
-                                                           FontWeight="SemiBold"
-                                                           FontSize="12"
-                                                           Margin="0,0,0,4" />
-                                                <ComboBox x:Name="CmbModSpacing"
-                                                          SelectionChanged="ModEditorField_Changed">
-                                                    <ComboBoxItem Content="Quebra dupla (parágrafo)" Tag="0" IsSelected="True" />
-                                                    <ComboBoxItem Content="Quebra simples (nova linha)" Tag="1" />
-                                                    <ComboBoxItem Content="Espaço simples" Tag="2" />
-                                                    <ComboBoxItem Content="Sem espaço (direto)" Tag="3" />
-                                                </ComboBox>
-                                            </StackPanel>
-
-                                            <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,16,0,0">
-                                                <CheckBox x:Name="ChkModAutoReset"
-                                                          Style="{StaticResource ToggleCheckStyle}"
-                                                          Content="Resetar seleção após colar"
-                                                          IsChecked="True"
-                                                          ToolTip="Ao colar, aplica o modificador e volta automaticamente para 'Nenhum'" />
-                                            </StackPanel>
-                                        </Grid>
-
-                                        <!-- Pré-visualização ao vivo -->
-                                        <Border Background="{DynamicResource HeaderFooterBgBrush}"
-                                                BorderBrush="{DynamicResource DividerBorderBrush}"
-                                                BorderThickness="1"
-                                                CornerRadius="6"
-                                                Padding="10,8"
-                                                Margin="0,0,0,12">
-                                            <StackPanel>
-                                                <TextBlock Text="Prévia do Texto Colado:"
-                                                           Foreground="{DynamicResource SecondaryTextBrush}"
-                                                           FontSize="11"
-                                                           FontWeight="SemiBold"
-                                                           Margin="0,0,0,4" />
-                                                <TextBlock x:Name="TxtModPreview"
-                                                           Foreground="{DynamicResource PrimaryTextBrush}"
-                                                           FontSize="12"
-                                                           TextWrapping="Wrap"
-                                                           FontFamily="Consolas, Segoe UI" />
-                                            </StackPanel>
-                                        </Border>
-
-                                        <!-- Botões de Ação do Editor -->
-                                        <StackPanel Orientation="Horizontal">
-                                            <Button x:Name="BtnSaveModifier"
-                                                    Style="{StaticResource ActionButtonStyle}"
-                                                    Background="#2563EB"
-                                                    BorderBrush="#3B82F6"
-                                                    Foreground="#FFFFFF"
-                                                    Content="Salvar Modificador"
-                                                    Margin="0,0,8,0"
-                                                    Click="SaveModifierItem_Click" />
-                                            <Button x:Name="BtnCancelModifier"
-                                                    Style="{StaticResource ActionButtonStyle}"
-                                                    Content="Cancelar / Limpar"
-                                                    Click="CancelModifierItem_Click" />
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Border>
-
-                                <!-- Lista de Modificadores Cadastrados -->
-                                <TextBlock Text="Modificadores Cadastrados:"
-                                           Foreground="{DynamicResource PrimaryTextBrush}"
-                                           FontWeight="SemiBold"
-                                           FontSize="13"
-                                           Margin="0,6,0,8" />
-
-                                <ItemsControl x:Name="ModifiersItemsList">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border Style="{StaticResource SettingCardStyle}" Padding="12,10" Margin="0,0,0,8">
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="Auto" />
-                                                    </Grid.ColumnDefinitions>
-
-                                                    <StackPanel Grid.Column="0">
-                                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                                            <Border Background="#1E3A8A" CornerRadius="4" Padding="5,1" Margin="0,0,8,0">
-                                                                <TextBlock Text="{Binding Label}" Foreground="#93C5FD" FontWeight="Bold" FontSize="11" />
-                                                            </Border>
-                                                            <TextBlock Text="{Binding PositionDescription}" Foreground="{DynamicResource AccentTextBrush}" FontWeight="SemiBold" FontSize="11.5" Margin="0,0,8,0" VerticalAlignment="Center" />
-                                                            <TextBlock Text="{Binding SpacingDescription, StringFormat='• {0}'}" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" VerticalAlignment="Center" />
-                                                        </StackPanel>
-
-                                                        <TextBlock Text="{Binding Text, StringFormat='Texto: &quot;{0}&quot;'}"
-                                                                   Foreground="{DynamicResource PrimaryTextBrush}"
-                                                                   FontSize="12"
-                                                                   TextTrimming="CharacterEllipsis"
-                                                                   MaxHeight="36" />
-
-                                                        <TextBlock Text="{Binding AutoReset, StringFormat='Auto-reset após colar: {0}'}"
-                                                                   Foreground="{DynamicResource SecondaryTextBrush}"
-                                                                   FontSize="10.5"
-                                                                   Margin="0,3,0,0" />
-                                                    </StackPanel>
-
-                                                    <!-- Botões de Ação na Linha -->
-                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                                        <Button Style="{StaticResource ActionButtonStyle}"
-                                                                Content="▲"
-                                                                Padding="6,4"
-                                                                Margin="0,0,4,0"
-                                                                ToolTip="Mover para cima"
-                                                                Tag="{Binding}"
-                                                                Click="MoveUpModifier_Click" />
-                                                        <Button Style="{StaticResource ActionButtonStyle}"
-                                                                Content="▼"
-                                                                Padding="6,4"
-                                                                Margin="0,0,4,0"
-                                                                ToolTip="Mover para baixo"
-                                                                Tag="{Binding}"
-                                                                Click="MoveDownModifier_Click" />
-                                                        <Button Style="{StaticResource ActionButtonStyle}"
-                                                                Content="Editar"
-                                                                Padding="8,4"
-                                                                Margin="0,0,4,0"
-                                                                Tag="{Binding}"
-                                                                Click="EditModifier_Click" />
-                                                        <Button Style="{StaticResource ActionButtonStyle}"
-                                                                Content="✕"
-                                                                Padding="7,4"
-                                                                Foreground="#EF4444"
-                                                                ToolTip="Excluir modificador"
-                                                                Tag="{Binding}"
-                                                                Click="DeleteModifier_Click" />
-                                                    </StackPanel>
-                                                </Grid>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </StackPanel>
                         </Grid>
                     </ScrollViewer>
                 </Grid>
 
-                <!-- RODAPÉ COM BOTÕES SALVAR / FECHAR -->
+                <!-- ==================== RODAPÉ COM SALVAR / CANCELAR ==================== -->
                 <Border Grid.Row="2"
                         Background="{DynamicResource HeaderFooterBgBrush}"
                         CornerRadius="0,0,12,12"
                         BorderBrush="{DynamicResource DividerBorderBrush}"
                         BorderThickness="0,1,0,0"
-                        Padding="16,10">
+                        Padding="20,12">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock x:Name="TxtSaveFeedback"
-                                   Grid.Column="0"
-                                   Text="Altere qualquer opção e clique em Salvar Alterações."
-                                   Foreground="{DynamicResource SecondaryTextBrush}"
-                                   FontSize="12"
-                                   VerticalAlignment="Center" />
+
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Ellipse Width="7" Height="7" Fill="{DynamicResource AccentTextBrush}" Margin="0,0,8,0" />
+                            <TextBlock x:Name="TxtSaveFeedback"
+                                       Text="Altere qualquer opção e clique em Salvar Alterações."
+                                       Foreground="{DynamicResource SecondaryTextBrush}"
+                                       FontSize="12"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+
                         <StackPanel Grid.Column="1" Orientation="Horizontal">
                             <Button Style="{StaticResource ActionButtonStyle}"
                                     Content="Cancelar"
-                                    Margin="0,0,8,0"
+                                    Margin="0,0,10,0"
                                     Click="CloseButton_Click" />
-                            <Button Style="{StaticResource ActionButtonStyle}"
-                                    Background="#2563EB"
-                                    BorderBrush="#3B82F6"
-                                    Foreground="#FFFFFF"
+                            <Button Style="{StaticResource PrimaryActionButtonStyle}"
                                     Content="Salvar Alterações"
-                                    Padding="16,7"
                                     Click="SaveSettings_Click" />
                         </StackPanel>
                     </Grid>

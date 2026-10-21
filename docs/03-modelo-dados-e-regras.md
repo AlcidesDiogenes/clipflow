@@ -1,12 +1,12 @@
 # 03. Modelo de Dados, Fixação (Pin) e Regras de Negócio
 
-Este documento detalha a estrutura de dados do **ClipFlow**, as regras do sistema de **Fixação (Pin)**, deduplicação, classificação inteligente e proteção de privacidade.
+Este documento detalha a estrutura de dados do **ClipFlow**, as regras do sistema de **Fixação (Pin)**, os **Textos Rápidos (Modificadores)**, deduplicação, classificação inteligente e preferências salvas em `AppSettings`.
 
 ---
 
 ## 1. Entidade Principal: `ClipItem`
 
-Cada item capturado da área de transferência é representado pela seguinte estrutura:
+Cada item capturado da área de transferência é representado pela seguinte estrutura de modelo:
 
 | Campo | Tipo | Descrição |
 | :--- | :--- | :--- |
@@ -15,64 +15,91 @@ Cada item capturado da área de transferência é representado pela seguinte est
 | `SubKind` | `ClipSubKind` | Subtipo detectado: `PlainText`, `Url`, `Email`, `HexColor`, `FilePath`, `Code`. |
 | `TextContent` | `string?` | Texto completo copiado (ou lista de caminhos separados para `Files`). |
 | `PreviewText` | `string` | Versão resumida/truncada (até 300 caracteres, sem quebras excessivas) para renderização rápida na UI. |
-| `HtmlContent` | `string?` | Conteúdo HTML opcional quando copiado de navegadores/editores ricos. |
+| `HtmlContent` | `string?` | Conteúdo HTML opcional quando copiado de navegadores ou editores ricos. |
 | `RtfContent` | `string?` | Conteúdo RTF opcional. |
 | `ImagePath` | `string?` | Caminho relativo da imagem salva em disco (`%LOCALAPPDATA%/ClipFlow/images/{hash}.png`). |
 | `ContentHash` | `string` (SHA-256) | Hash único do conteúdo para evitar itens duplicados. |
-| `IsPinned` | `bool` | **Indica se o item está FIXADO para acesso rápido.** |
+| `IsPinned` | `bool` | **Indica se o item está FIXADO para acesso permanente.** |
 | `PinOrder` | `int` | Ordem customizada entre os itens fixados. |
 | `TitleOrNote` | `string?` | Apelido/título opcional (ex.: *"Assinatura de Email"*, *"PIX da Empresa"*, *"Comando Docker"*). |
 | `SourceAppName` | `string?` | Nome do aplicativo de onde o conteúdo foi copiado (ex.: `chrome`, `Code`, `notepad`). |
 | `UseCount` | `int` | Quantidade de vezes que o item foi colado pelo usuário. |
-| `CharacterCount` | `int` | Tamanho do texto ou dimensões da imagem (`LxA`). |
+| `CharacterCount` | `int` | Tamanho do texto em caracteres ou dimensões da imagem (`LxA`). |
 | `CreatedAt` | `DateTime` | Data/hora da primeira captura. |
 | `UpdatedAt` | `DateTime` | Data/hora da última cópia ou uso. |
 
 ---
 
-## 2. Regras do Sistema de Fixação (Pin) 📌
+## 2. Entidade de Textos Rápidos: `TextModifierPreset`
 
-O grande diferencial do **ClipFlow** é tornar os itens fixados extremamente rápidos de acessar e organizar:
+Permite ao usuário pré-definir saudações, introduções ou sufixos que são anexados dinamicamente ao texto copiado no momento da colagem:
 
-1. **Proteção Permanente:**
-   * Itens com `IsPinned = true` **nunca expiram** e **nunca são removidos** quando o histórico atinge o limite máximo (ex.: 200 itens) ou quando o usuário clica em *"Limpar Histórico"*.
-2. **Acesso Rápido na Interface:**
-   * Na aba **"Todos"**, os itens podem ser visualizados com destaque (ícone 📌 colorido) ou filtrados instantaneamente na aba dedicada **"Fixados 📌"** (acessível com `Tab` ou `Alt + 2`).
-3. **Apelidos / Etiquetas Rápidas (`TitleOrNote`):**
-   * O usuário pode dar um título curto a um item fixado (ex.: *"Meu CPF"*, *"Link do LinkedIn"*, *"Resposta Padrão Cliente"*).
-   * A barra de busca pesquisa tanto pelo **conteúdo** quanto pelo **título/apelido** do item fixado!
-4. **Comportamento ao Recopiar ou Usar:**
-   * Quando um item normal é copiado novamente, seu `UpdatedAt` vai para o topo do histórico.
-   * Quando um item fixado é usado, ele incrementa o `UseCount` e mantém sua posição privilegiada.
+| Propriedade | Tipo | Descrição |
+| :--- | :--- | :--- |
+| `Id` | `string` (GUID) | Identificador único do modificador. |
+| `Label` | `string` | Nome curto exibido no Chip da barra de atalhos (ex.: *"Bom dia"*, *"Protocolo"*). |
+| `Text` | `string` | Conteúdo do texto a ser inserido (ex.: *"Bom dia!\n\n"* ou *"Atenciosamente,\nAlcides"*). |
+| `Position` | `ModifierPosition` | `Prefix` (inserir antes do texto) ou `Suffix` (inserir depois do texto). |
+| `Spacing` | `ModifierSpacing` | `DoubleBreak` (`\n\n`), `SingleBreak` (`\n`), `Space` (`" "`) ou `None` (`""`). |
+| `AutoReset` | `bool` | Se `true`, retorna automaticamente a seleção para "Nenhum" após colar uma vez. |
+| `IsEnabled` | `bool` | Controla se o modificador está disponível para uso na barra de atalhos. |
 
----
+### Regra de Aplicação (`TextModifierPreset.Apply`):
+```csharp
+public static string Apply(string baseText, TextModifierPreset modifier)
+{
+    string separator = modifier.Spacing switch
+    {
+        ModifierSpacing.DoubleBreak => "\n\n",
+        ModifierSpacing.SingleBreak => "\n",
+        ModifierSpacing.Space => " ",
+        ModifierSpacing.None => string.Empty,
+        _ => "\n\n"
+    };
 
-## 3. Regra de Deduplicação Inteligente (SHA-256)
-
-Para evitar que copiar o mesmo texto várias vezes polua o menu:
-1. Ao capturar um novo texto ou imagem, o **ClipFlow** calcula o `ContentHash` (SHA-256 do texto normalizado ou dos bytes da imagem).
-2. Verifica se já existe um item com o mesmo `ContentHash`:
-   * **Se já existir:** Não cria um item duplicado. Apenas atualiza o `UpdatedAt = DateTime.UtcNow`, move o item para o topo do histórico recente e preserva seu status `IsPinned` e `TitleOrNote`.
-   * **Se não existir:** Insere o novo registro no topo da lista.
-
----
-
-## 4. Detecção Automática de Subtipos (`ContentDetector`)
-
-Para enriquecer a visualização no estilo moderno:
-* **Cor (`HexColor`):** Se o texto fizer match com `^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$` ou `^rgba?\(.*\)$`, a interface exibe um **círculo/quadrado pintado com a cor real** ao lado do código hexadecimal.
-* **Link (`Url`):** Se iniciar com `http://`, `https://` ou `www.`, exibe badge de Link `🔗`.
-* **E-mail (`Email`):** Se corresponder ao padrão `usuario@dominio.ext`, exibe badge `✉️`.
-* **Código (`Code`):** Se contiver múltiplos indicadores de código (`{`, `}`, `=>`, `function`, `public class`, `SELECT `, `import `), exibe badge `</>`.
-* **Caminho (`FilePath`):** Se for um caminho absoluto válido do Windows (`C:\...`), exibe badge `📁`.
+    return modifier.Position == ModifierPosition.Prefix
+        ? $"{modifier.Text}{separator}{baseText}"
+        : $"{baseText}{separator}{modifier.Text}";
+}
+```
 
 ---
 
-## 5. Regras de Privacidade e Segurança (`PrivacyGuard`)
+## 3. Configurações Globais: `AppSettings`
 
-1. **Flags Nativas de Gerenciadores de Senha:**
-   * Se o `IDataObject` contiver `ExcludeClipboardContentFromMonitorProcessing` ou `CanIncludeInClipboardHistory == 0`, o ClipFlow **ignora imediatamente** a captura.
-2. **Lista de Aplicativos Ignorados (`ExcludedApps`):**
-   * Por padrão, ignora processos conhecidos de cofres de senha (`1Password`, `Bitwarden`, `KeePass`, `KeePassXC`, `LastPass`, `Dashlane`). O usuário pode adicionar qualquer app à lista.
-3. **Limites Seguros de Memória:**
-   * Textos maiores que **1 MB** ou imagens maiores que **20 Megapixels / 15 MB** são ignorados ou truncados com segurança para manter o uso de RAM sempre baixo.
+Armazenadas em `%LOCALAPPDATA%/ClipFlow/settings.json`, definem todo o comportamento do aplicativo:
+
+| Grupo | Chaves / Propriedades | Valores Padrão & Descrição |
+| :--- | :--- | :--- |
+| **Geral** | `StartWithWindows`<br>`StartMinimized`<br>`CloseOnBlur`<br>`AlwaysOnTop` | Iniciar com o Windows, iniciar na bandeja do sistema, fechar ao clicar fora e manter janela no topo. |
+| **Atalhos & Borda** | `Shortcut`<br>`EdgeTrigger`<br>`EdgeTriggerDelayMs`<br>`PasteDirectly`<br>`DefaultPlainTextPaste`<br>`MoveToTopOnPaste`<br>`PasteDelayMs` | Atalho global (`Ctrl+Shift+V`, `Alt+V`), gatilho de borda (`Disabled`, `Left`, `Right`, `Both`), delay de sensibilidade de borda (`220ms`), injeção automática de `Ctrl+V` e delay de foco (`35ms`). |
+| **Histórico** | `MaxHistoryCount`<br>`ShowPinnedInTextTab`<br>`CaptureText`<br>`CaptureImages`<br>`CaptureFiles`<br>`MaxTextSizeKb` | Limite padrão de 200 itens normais (Pins não contam), filtros de tipos de captura e limite de tamanho por texto (`1024 KB`). |
+| **Aparência** | `Theme`<br>`SpawnPosition`<br>`WindowWidth`<br>`WindowHeight`<br>`WindowOpacity`<br>`ShowFooterHints` | Tema visual (`Dark`, `Light`), posição de abertura (`NearCursor`, `Center`, etc.), dimensões (`440x580`), opacidade (`100%`) e dicas no rodapé. |
+| **Privacidade** | `IgnorePasswordManagers`<br>`IgnoreSecretTokens`<br>`ExcludedApps` | Ignora gerenciadores de senhas, bloqueia tokens (`sk-`, `ghp_`, `AKIA`, `PRIVATE KEY`) e lista de executáveis ignorados. |
+| **Modificadores** | `TextModifiers` | Lista ordenada de objetos `TextModifierPreset` cadastrados pelo usuário. |
+
+---
+
+## 4. Regras do Sistema de Fixação (Pin) 📌
+
+1. **Proteção Permanente:** Itens com `IsPinned = true` **nunca expiram** e **nunca são removidos** pelo limite máximo de histórico ou pelo comando *"Limpar Histórico Não-Fixado"*.
+2. **Acesso Dedicado:** Podem ser vistos com destaque na aba *"Tudo"* ou exclusivamente na aba *"Fixados 📌"*.
+3. **Apelidos / Notas (`TitleOrNote`):** Editáveis a qualquer momento com `F2`. A barra de busca pesquisa simultaneamente pelo texto copiado e pelo apelido.
+
+---
+
+## 5. Deduplicação Inteligente (SHA-256)
+
+1. Ao capturar um conteúdo, calcula-se o hash `SHA-256` do texto normalizado ou dos bytes da imagem.
+2. **Se o hash já existir:** Atualiza `UpdatedAt = DateTime.UtcNow`, incrementa contadores, move para o topo da lista recente e preserva seu status `IsPinned` e apelido.
+3. **Se o hash for novo:** Insere um novo item no topo do histórico.
+
+---
+
+## 6. Detecção Automática de Subtipos (`ContentDetector`)
+
+* **Cor (`HexColor`):** Detecta formatos `#RGB`, `#RRGGBB`, `#AARRGGBB` e renderiza uma amostra da cor real na UI.
+* **Link (`Url`):** Detecta `http://`, `https://` ou `www.` e exibe badge interativo `🔗`.
+* **E-mail (`Email`):** Detecta endereços válidos de correio eletrônico `✉️`.
+* **Código (`Code`):** Detecta palavras-chave e símbolos de linguagens de programação `</>`.
+* **Caminho de Arquivo (`FilePath`):** Detecta caminhos locais do Windows `📁`.

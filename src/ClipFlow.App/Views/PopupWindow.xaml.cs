@@ -480,17 +480,6 @@ public partial class PopupWindow : Window
             e.Handled = true;
             return;
         }
-
-        if (Keyboard.Modifiers == ModifierKeys.Control && key is >= Key.D1 and <= Key.D9)
-        {
-            int index = key - Key.D1;
-            if (index >= 0 && index < _viewModel.FilteredItems.Count)
-            {
-                e.Handled = true;
-                await PasteSelectedItemAsync(_viewModel.FilteredItems[index]);
-                return;
-            }
-        }
     }
 
     private void NoneModifierChip_Click(object sender, RoutedEventArgs e)
@@ -510,7 +499,7 @@ public partial class PopupWindow : Window
 
     private void ManageModifiersButton_Click(object sender, RoutedEventArgs e)
     {
-        OpenSettingsDialog(6);
+        OpenSettingsDialog(3);
     }
 
     private void MoveSelection(int delta)

@@ -1,6 +1,6 @@
 # 02. Arquitetura do Sistema — ClipFlow
 
-Este documento especifica a arquitetura técnica do **ClipFlow**, projetada em **C# / .NET 10 (WPF)** para máxima performance nativa no Windows, consumo mínimo de memória RAM e resposta instantânea.
+Este documento especifica a arquitetura técnica do **ClipFlow**, projetada em **C# / .NET 10 (WPF)** para máxima performance nativa no Windows, consumo mínimo de memória RAM, resposta instantânea e modularidade.
 
 ---
 
@@ -11,45 +11,52 @@ flowchart TD
     subgraph Win32["Camada Nativa Win32 (P/Invoke)"]
         MsgWnd["MessageWindow (HWND_MESSAGE)"]
         FgTrack["ForegroundTracker (WinEventHook)"]
-        InputSim["InputSimulator (SendInput / WM_PASTE)"]
+        InputSim["InputSimulator (SendInput / PasteInjector)"]
+        EdgeSvc["EdgeTriggerService (Cursor / Screen Bounds)"]
     end
 
     subgraph Core["Camada de Serviços (Core & Background)"]
-        ClipWatcher["ClipboardWatcherService"]
+        ClipWatcher["ClipboardService (Retry COM / Deduplicação)"]
         WriteGuard["WritebackGuard (Anti-Loop)"]
-        Classifier["ContentClassifier (Texto, URL, Cor, Imagem, Arquivo)"]
-        Security["PrivacyFilter (Senhas, Tokens, Apps Excluídos)"]
-        PasteSvc["PasteService"]
+        Classifier["ContentDetector (Texto, URL, Cor, Imagem, Arquivo)"]
+        Security["PrivacyGuard (Senhas, Tokens, Apps Excluídos)"]
+        ThemeSvc["ThemeService (Dark / Light Dinâmico)"]
+        StartupSvc["StartupRegistryService (Windows Run Key)"]
     end
 
     subgraph Data["Camada de Persistência"]
-        Repo["ClipboardRepository (SQLite / Local Store)"]
+        Storage["StorageService (JSON / Local Store)"]
         ImgStore["ImageCacheStore (Miniaturas & PNGs)"]
-        Settings["SettingsService (JSON)"]
+        Settings["AppSettings (Atalhos, Bordas, Modificadores)"]
     end
 
     subgraph UI["Camada de Apresentação (WPF Fluent UI)"]
-        Popup["MainPopupWindow (Estilo Win+V)"]
-        Tray["SystemTrayIcon (NotifyIcon)"]
-        VM["MainViewModel (MVVM)"]
+        Popup["PopupWindow (Estilo Win+V com Chips)"]
+        SettingsWnd["SettingsWindow (Central de Ajustes 820x630)"]
+        Tray["SystemTray (NotifyIcon)"]
+        VM["MainViewModel (MVVM / Modificadores / Busca)"]
     end
 
     MsgWnd -->|WM_CLIPBOARDUPDATE| ClipWatcher
     MsgWnd -->|WM_HOTKEY| Popup
-    FgTrack -->|Último HWND ativo| PasteSvc
+    FgTrack -->|Último HWND ativo| InputSim
+    EdgeSvc -->|Mouse na borda| Popup
 
     ClipWatcher --> WriteGuard
     WriteGuard --> Security
     Security --> Classifier
-    Classifier --> Repo
+    Classifier --> Storage
     Classifier --> ImgStore
 
-    Repo <--> VM
+    Storage <--> VM
+    Settings <--> VM
     Popup <--> VM
+    SettingsWnd <--> VM
     Tray --> Popup
-    VM -->|Selecionar Item| PasteSvc
-    PasteSvc --> WriteGuard
-    PasteSvc --> InputSim
+    Tray --> SettingsWnd
+
+    VM -->|Colar com Modificador| InputSim
+    InputSim --> WriteGuard
 ```
 
 ---
@@ -62,71 +69,92 @@ clipflow/
 ├── src/
 │   └── ClipFlow.App/
 │       ├── ClipFlow.App.csproj         # Projeto .NET 10 WPF (net10.0-windows)
-│       ├── App.xaml                    # Recursos globais, tema Dark/Fluent
-│       ├── App.xaml.cs                 # Ciclo de vida, instância única (Mutex), Tray
-│       ├── Platform/                   # Interoperabilidade Win32 (P/Invoke)
+│       ├── App.xaml                    # Paleta dinâmica (Dark/Light), estilos de ScrollBar
+│       ├── App.xaml.cs                 # Mutex de instância única, ciclo de vida e System Tray
+│       ├── Platform/                   # Interoperabilidade Win32 e Comportamentos
 │       │   ├── NativeMethods.cs        # Declarações user32.dll / kernel32.dll
-│       │   ├── MessageWindow.cs        # HWND_MESSAGE para escuta invisível
-│       │   ├── ForegroundTracker.cs    # Rastreamento da janela ativa do usuário
-│       │   └── PasteInjector.cs        # Restauração de foco e simulação Ctrl+V
-│       ├── Models/                     # Entidades de domínio
-│       │   ├── ClipItem.cs             # Item do histórico (Texto, Imagem, Arquivo)
+│       │   ├── MessageWindow.cs        # Janela HWND_MESSAGE para escuta de mensagens do SO
+│       │   ├── ForegroundTracker.cs    # Rastreamento de foco da janela de trabalho do usuário
+│       │   ├── PasteInjector.cs        # Restauração de foco e simulação precisa de Ctrl+V
+│       │   ├── AppIconBuilder.cs       # Gerador dinâmico de ícones em alta resolução para a janela e Tray
+│       │   └── SmoothScrollBehavior.cs # Rolagem inercial suave para o ScrollViewer do WPF
+│       ├── Models/                     # Entidades de domínio e configurações
+│       │   ├── ClipItem.cs             # Registro de item copiado (Texto, Imagem, Arquivos, Pins)
 │       │   ├── ClipKind.cs             # Enums: Kind (Text, Image, Files) e SubKind
-│       │   └── AppSettings.cs          # Configurações (Atalho, Limite, Exclusões)
+│       │   ├── AppSettings.cs          # Modelo completo de preferências salvas
+│       │   └── TextModifierPreset.cs   # Modificadores de texto rápido (Prefixos, Sufixos, Quebras)
 │       ├── Services/                   # Regras de negócio e processamento
-│       │   ├── ClipboardService.cs     # Captura, retry COM, deduplicação
-│       │   ├── WritebackGuard.cs       # Prevenção de loop ao colar
-│       │   ├── ContentDetector.cs      # Detecção de URL, Cor Hex, Email, Código
-│       │   ├── PrivacyGuard.cs         # Filtro de senhas e apps ignorados
-│       │   └── StorageService.cs       # Persistência rápida e gerenciamento de Pins
-│       ├── ViewModels/                 # Estado reativo da interface (MVVM)
-│       │   └── MainViewModel.cs        # Busca instantânea, abas (Todos/Fixados), comandos
+│       │   ├── ClipboardService.cs     # Captura de clipboard, deduplicação SHA-256 e retry COM
+│       │   ├── EdgeTriggerService.cs   # Gatilho de abertura do app ao encostar o mouse nas laterais
+│       │   ├── ThemeService.cs         # Alternância instantânea de temas Dark e Light
+│       │   ├── StartupRegistryService.cs # Registro de inicialização com o Windows (HKCU Run)
+│       │   ├── WritebackGuard.cs       # Prevenção de loop quando o ClipFlow cola no app alvo
+│       │   ├── ContentDetector.cs      # Classificação inteligente de URLs, cores Hex, e-mails e código
+│       │   ├── PrivacyGuard.cs         # Filtro de gerenciadores de senhas, chaves privadas e apps excluídos
+│       │   └── StorageService.cs       # Persistência atômica em disco (%LOCALAPPDATA%/ClipFlow)
+│       ├── ViewModels/                 # Estado reativo e lógica de apresentação (MVVM)
+│       │   └── MainViewModel.cs        # Coleções filtradas, pins, modificadores e comandos
 │       └── Views/                      # Interfaces visuais WPF
-│           ├── PopupWindow.xaml        # Janela flutuante estilo Win+V
-│           └── SettingsWindow.xaml     # Configurações de atalho e limites
+│           ├── PopupWindow.xaml        # Janela flutuante estilo Win+V com barra de chips de modificadores
+│           ├── PopupWindow.xaml.cs     # Posicionamento inteligente, docking lateral e atalhos rápidos
+│           ├── SettingsWindow.xaml     # Central de Ajustes 820x630 (Fluent UI com 7 seções)
+│           └── SettingsWindow.xaml.cs  # Gerenciamento de preferências, editor de modificadores e ações
 └── ClipFlow.sln                        # Solução Visual Studio / .NET CLI
 ```
 
 ---
 
-## 3. Especificação dos Módulos Críticos (Win32 Interop)
+## 3. Especificação dos Módulos Críticos (Win32 Interop & Core)
 
 ### 3.1. Escuta de Área de Transferência (`MessageWindow` + `ClipboardService`)
 * **Mensagem do Windows:** `WM_CLIPBOARDUPDATE = 0x031D`.
-* **Registro:** `AddClipboardFormatListener(hwnd)` conectado a uma janela `HWND_MESSAGE` (`new nint(-3)`).
+* **Registro:** `AddClipboardFormatListener(hwnd)` conectado a uma janela oculta `HWND_MESSAGE` (`new nint(-3)`).
 * **Resiliência a Bloqueios COM (`CLIPBRD_E_CANT_OPEN`):**
   * Ao receber `0x031D`, o serviço lê `GetClipboardSequenceNumber()`.
-  * Inicia um `DispatcherTimer` de `60ms` a `80ms` (máximo 8 tentativas) para ler o `Clipboard.GetDataObject()` sem travar a UI caso outro app ainda esteja fechando o handle da área de transferência.
+  * Inicia um timer com até 8 tentativas de leitura espaçadas (`DispatcherTimer` de `60ms` a `80ms`) para ler `Clipboard.GetDataObject()` sem travar a interface gráfica caso outro processo esteja finalizando a escrita.
 
 ### 3.2. Atalho Global (`RegisterHotKey`)
 * **Mensagem do Windows:** `WM_HOTKEY = 0x0312`.
-* **Atalho Padrão:** `Ctrl + Shift + V` ou `Alt + V` (configurável pelo usuário, com flag `MOD_NOREPEAT = 0x4000`).
+* **Atalho Padrão:** `Ctrl + Shift + V` ou `Alt + V` (configurável, com flag `MOD_NOREPEAT = 0x4000`).
 * **Comportamento Toggle:**
-  * Se o `PopupWindow` estiver oculto: captura a posição do mouse/tela, atualiza o filtro, exibe a janela e foca na barra de pesquisa/lista.
-  * Se o `PopupWindow` já estiver visível: oculta a janela e devolve o foco ao aplicativo anterior.
+  * Se o `PopupWindow` estiver oculto: captura a posição do mouse/tela, atualiza a lista, abre a janela e foca na barra de pesquisa.
+  * Se já estiver visível: oculta imediatamente e devolve o foco para a janela anterior.
 
 ### 3.3. Rastreamento de Foco (`ForegroundTracker`)
 * **Hook:** `SetWinEventHook(EVENT_SYSTEM_FOREGROUND = 3, ..., WINEVENT_OUTOFCONTEXT = 2)`.
 * **Filtro de Janelas Ignoradas:**
-  * Ignora o próprio processo (`Environment.ProcessId`).
-  * Ignora classes do Explorer/Bandeja: `Shell_TrayWnd`, `Shell_SecondaryTrayWnd`, `NotifyIconOverflowWindow`, `#32768` (menus de contexto).
-* **Resultado:** A propriedade `LastWindow` sempre contém o `HWND` real onde o usuário estava trabalhando (ex.: VS Code, Chrome, Word, Discord).
+  * Ignora o processo do próprio ClipFlow (`Environment.ProcessId`).
+  * Ignora janelas do sistema operacional: `Shell_TrayWnd`, `Shell_SecondaryTrayWnd`, `NotifyIconOverflowWindow`, `#32768` (menus de contexto).
+* **Propósito:** A propriedade `LastWindow` sempre guarda o ponteiro `HWND` real do aplicativo onde o usuário estava digitando (ex.: Google Chrome, VS Code, Word, Discord).
 
-### 3.4. Motor de Colagem Automática (`PasteInjector`)
-Quando o usuário seleciona um item no ClipFlow (via `Enter`, clique ou atalho `1..9`):
-1. **Writeback Guard:** Registra o hash/sequência do item no `WritebackGuard` para que o ClipFlow saiba que a próxima alteração do clipboard veio dele mesmo.
-2. **Escrita no Clipboard:** Define o conteúdo selecionado no Clipboard do Windows (com opção de manter formatação ou colar como Texto Puro se `Shift + Enter` foi usado).
-3. **Ocultação:** Esconde o `PopupWindow` imediatamente (`Hide()`).
-4. **Restauração de Foco:** Chama `SetForegroundWindow(LastWindow)` e aguarda `15ms–25ms` para a janela de destino ativar sua fila de entrada.
-5. **Disparo de Teclas (`SendInput`):** Envia o pacote atômico de 4 eventos de teclado:
-   * `VK_CONTROL (0x11)` KeyDown
-   * `VK_V (0x56)` KeyDown
-   * `VK_V (0x56)` KeyUp
-   * `VK_CONTROL (0x11)` KeyUp
-6. **Atualização de Uso:** Incrementa `UseCount` do item e atualiza `LastUsedAt`.
+### 3.4. Motor de Injeção de Colagem (`PasteInjector`)
+Quando o usuário seleciona um item no ClipFlow (via `Enter` ou duplo clique):
+1. **Aplicação de Modificador Ativo:** Se houver um chip de texto rápido selecionado (ex: "Bom dia"), o `MainViewModel` aplica `TextModifierPreset.Apply()` antes de injetar o conteúdo.
+2. **Writeback Guard:** Registra o hash no `WritebackGuard` para ignorar o evento de clipboard disparado pela própria cópia.
+3. **Escrita no Clipboard:** Atualiza o clipboard do sistema (como texto puro se o usuário usou `Shift + Enter` ou conforme configurado).
+4. **Ocultação e Restauração de Foco:** Oculta a janela e restaura o foco via `SetForegroundWindow(LastWindow)`.
+5. **Simulação Atômica (`SendInput`):** Dispara `Ctrl + V` e opcionalmente reseta o modificador ativo se `AutoReset = true`.
+
+### 3.5. Gatilho por Borda da Tela (`EdgeTriggerService`)
+* Monitora o ponteiro do mouse via timer de alta precisão (`40ms`).
+* Ao detectar o cursor no pixel `0` (borda esquerda) ou no pixel final da largura da tela (borda direita) por um tempo contínuo pré-definido (sensibilidade padrão: `220ms`):
+  * Abre o ClipFlow automaticamente e o acopla (*docking*) diretamente na borda ativada.
+  * Possui período de graça (*grace period*) e estabilização de clique externo para evitar fechamentos indesejados.
+
+### 3.6. Sistema Dinâmico de Temas (`ThemeService`)
+* Altera as propriedades de cores (`WindowBgBrush`, `CardBgBrush`, `PrimaryTextBrush`, etc.) diretamente no `ResourceDictionary` global em tempo de execução.
+* Suporta **Tema Escuro (Dark)** e **Tema Claro (Light)**, garantindo contraste adequado e legibilidade em qualquer ambiente.
+
+### 3.7. Otimização de Nitidez de Fontes (ClearType no WPF)
+* Janelas WPF com `AllowsTransparency="True"` desativam a renderização subpixel ClearType por padrão, utilizando suavização em tons de cinza (*grayscale smoothing*).
+* O ClipFlow resolve isso ativando:
+  * `RenderOptions.ClearTypeHint="Enabled"` na camada opaca do fundo.
+  * `TextOptions.TextFormattingMode="Display"`.
+  * `TextOptions.TextHintingMode="Fixed"`.
+  * Família tipográfica padrão do sistema: `Segoe UI, Segoe UI Variable Text`.
 
 ---
 
 ## 4. Instância Única e Inicialização Silenciosa
 * O `App.xaml.cs` utiliza um `Mutex` global nomeado (`Local\ClipFlow_SingleInstance_Mutex`).
-* Se o usuário tentar abrir o executável uma segunda vez, a primeira instância recebe um sinal para exibir o `PopupWindow` na tela em vez de duplicar o processo em segundo plano.
+* Se uma segunda instância for iniciada, a primeira recebe o foco automaticamente em vez de criar um processo duplicado.

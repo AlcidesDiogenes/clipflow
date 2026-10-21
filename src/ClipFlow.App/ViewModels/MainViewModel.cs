@@ -464,10 +464,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
         var resultList = queryable.ToList();
 
         FilteredItems.Clear();
-        for (int i = 0; i < resultList.Count; i++)
+        foreach (var item in resultList)
         {
-            var item = resultList[i];
-            item.QuickIndex = i < 9 ? i + 1 : 0;
             FilteredItems.Add(item);
         }
 

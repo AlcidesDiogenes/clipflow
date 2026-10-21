@@ -37,10 +37,10 @@ public partial class SettingsWindow : Window
             case 0: NavGeneral.IsChecked = true; break;
             case 1: NavShortcuts.IsChecked = true; break;
             case 2: NavHistory.IsChecked = true; break;
-            case 3: NavAppearance.IsChecked = true; break;
-            case 4: NavPrivacy.IsChecked = true; break;
-            case 5: NavData.IsChecked = true; break;
-            case 6: NavModifiers.IsChecked = true; break;
+            case 3: NavModifiers.IsChecked = true; break;
+            case 4: NavAppearance.IsChecked = true; break;
+            case 5: NavPrivacy.IsChecked = true; break;
+            case 6: NavData.IsChecked = true; break;
             default: NavGeneral.IsChecked = true; break;
         }
     }
