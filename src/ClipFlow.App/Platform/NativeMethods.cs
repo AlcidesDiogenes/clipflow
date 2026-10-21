@@ -78,6 +78,9 @@ internal static class NativeMethods
     [DllImport("user32.dll")]
     internal static extern bool BringWindowToTop(nint hWnd);
 
+    [DllImport("user32.dll")]
+    internal static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, nuint dwExtraInfo);
+
     [DllImport("kernel32.dll")]
     internal static extern uint GetCurrentThreadId();
 

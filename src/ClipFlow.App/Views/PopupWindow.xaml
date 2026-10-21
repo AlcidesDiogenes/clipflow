@@ -122,6 +122,17 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!-- Estilo de Botão Chip de Modificador -->
+        <Style x:Key="ModifierChipButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="{DynamicResource ButtonBgBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorderBrush}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="UseLayoutRounding" Value="True" />
+        </Style>
     </Window.Resources>
 
     <!-- Grid Raiz separando a camada de Sombra da camada de Conteúdo -->
@@ -148,9 +159,10 @@
                     <RowDefinition Height="Auto" /> <!-- 0: Cabeçalho -->
                     <RowDefinition Height="Auto" /> <!-- 1: Busca -->
                     <RowDefinition Height="Auto" /> <!-- 2: Abas -->
-                    <RowDefinition Height="Auto" /> <!-- 3: Editor de Apelido -->
-                    <RowDefinition Height="*" />    <!-- 4: Lista de Cards -->
-                    <RowDefinition Height="Auto" /> <!-- 5: Rodapé -->
+                    <RowDefinition Height="Auto" /> <!-- 3: Modificadores de Texto (Chips) -->
+                    <RowDefinition Height="Auto" /> <!-- 4: Editor de Apelido -->
+                    <RowDefinition Height="*" />    <!-- 5: Lista de Cards -->
+                    <RowDefinition Height="Auto" /> <!-- 6: Rodapé -->
                 </Grid.RowDefinitions>
 
                 <!-- 1. CABEÇALHO -->
@@ -318,8 +330,134 @@
                     </StackPanel>
                 </Border>
 
-                <!-- 4. BARRA DE EDIÇÃO DE APELIDO / NOTA -->
+                <!-- 4. BARRA DE CHIPS DE TEXTO (SAUDAÇÕES / MODIFICADORES) -->
                 <Border Grid.Row="3"
+                        Background="{DynamicResource HeaderFooterBgBrush}"
+                        BorderBrush="{DynamicResource DividerBorderBrush}"
+                        BorderThickness="0,0,0,1"
+                        Padding="10,6">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <ScrollViewer Grid.Column="0"
+                                      HorizontalScrollBarVisibility="Hidden"
+                                      VerticalScrollBarVisibility="Disabled"
+                                      platform:SmoothScrollBehavior.IsEnabled="True">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <!-- Chip [Nenhum] -->
+                                <Button Style="{StaticResource ModifierChipButtonStyle}"
+                                        Margin="0,0,6,0"
+                                        Click="NoneModifierChip_Click"
+                                        ToolTip="Colar sem nenhum prefixo ou sufixo adicional (Atalho: Alt+0 ou Esc)">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="Bd"
+                                                    Background="{TemplateBinding Background}"
+                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="6"
+                                                    Padding="8,3">
+                                                <TextBlock Text="Nenhum"
+                                                           Foreground="{TemplateBinding Foreground}"
+                                                           FontSize="11"
+                                                           FontWeight="SemiBold" />
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <DataTrigger Binding="{Binding IsNoneModifierSelected}" Value="True">
+                                                    <Setter TargetName="Bd" Property="Background" Value="#2563EB" />
+                                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#3B82F6" />
+                                                    <Setter Property="Foreground" Value="#FFFFFF" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding IsNoneModifierSelected}" Value="False">
+                                                    <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ButtonBgBrush}" />
+                                                    <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource ButtonBorderBrush}" />
+                                                    <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}" />
+                                                </DataTrigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+
+                                <!-- Chips Cadastrados -->
+                                <ItemsControl ItemsSource="{Binding ActiveModifiersList}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Style="{StaticResource ModifierChipButtonStyle}"
+                                                    Margin="0,0,6,0"
+                                                    Tag="{Binding}"
+                                                    Click="ModifierChip_Click"
+                                                    ToolTip="{Binding TooltipText}">
+                                                <Button.Template>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border x:Name="Bd"
+                                                                Background="{TemplateBinding Background}"
+                                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                                BorderThickness="1"
+                                                                CornerRadius="6"
+                                                                Padding="7,3">
+                                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                <Border Background="#1E3A8A"
+                                                                        CornerRadius="3"
+                                                                        Padding="4,1"
+                                                                        Margin="0,0,5,0"
+                                                                        Visibility="{Binding HasShortcut, Converter={StaticResource BoolToVis}}">
+                                                                    <TextBlock Text="{Binding ShortcutBadge}"
+                                                                               Foreground="#93C5FD"
+                                                                               FontSize="9.5"
+                                                                               FontWeight="Bold" />
+                                                                </Border>
+                                                                <TextBlock Text="{Binding Label}"
+                                                                           Foreground="{TemplateBinding Foreground}"
+                                                                           FontSize="11"
+                                                                           FontWeight="SemiBold" />
+                                                            </StackPanel>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                                <Setter TargetName="Bd" Property="Background" Value="#2563EB" />
+                                                                <Setter TargetName="Bd" Property="BorderBrush" Value="#60A5FA" />
+                                                                <Setter Property="Foreground" Value="#FFFFFF" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding IsSelected}" Value="False">
+                                                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ButtonBgBrush}" />
+                                                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource ButtonBorderBrush}" />
+                                                                <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+                                                            </DataTrigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Button.Template>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <!-- Botão Rápido de Configurar Modificadores -->
+                        <Button Grid.Column="1"
+                                Style="{StaticResource HeaderButtonStyle}"
+                                Padding="6,3"
+                                Margin="4,0,0,0"
+                                ToolTip="Gerenciar textos e saudações nas configurações"
+                                Click="ManageModifiersButton_Click">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="+" FontSize="12" FontWeight="Bold" Margin="0,0,4,0" Foreground="{DynamicResource AccentTextBrush}" />
+                                <TextBlock Text="Ajustar" FontSize="10.5" FontWeight="SemiBold" />
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <!-- 5. BARRA DE EDIÇÃO DE APELIDO / NOTA -->
+                <Border Grid.Row="4"
                         Visibility="{Binding IsEditingNote, Converter={StaticResource BoolToVis}}"
                         Background="{DynamicResource NoteBarBgBrush}"
                         BorderBrush="#3B82F6"
@@ -366,8 +504,8 @@
                     </Grid>
                 </Border>
 
-                <!-- 5. LISTA DE CARTÕES DO HISTÓRICO -->
-                <Grid Grid.Row="4">
+                <!-- 6. LISTA DE CARTÕES DO HISTÓRICO -->
+                <Grid Grid.Row="5">
                     <ListBox x:Name="ClipsListBox"
                              ItemsSource="{Binding FilteredItems}"
                              SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
@@ -559,8 +697,8 @@
                     </StackPanel>
                 </Grid>
 
-                <!-- 6. RODAPÉ DE DICAS E STATUS -->
-                <Border Grid.Row="5"
+                <!-- 7. RODAPÉ DE DICAS E STATUS -->
+                <Border Grid.Row="6"
                         Background="{DynamicResource HeaderFooterBgBrush}"
                         CornerRadius="0,0,12,12"
                         BorderBrush="{DynamicResource DividerBorderBrush}"
@@ -580,7 +718,7 @@
                                    Margin="0,0,10,0"
                                    VerticalAlignment="Center" />
                         <TextBlock Grid.Column="1"
-                                   Text="Enter: Colar • Ctrl+P: Fixar • F2: Nota"
+                                   Text="Enter: Colar • Alt+1..9: Prefixo • Ctrl+P: Fixar • F2: Nota"
                                    Foreground="{DynamicResource SecondaryTextBrush}"
                                    FontSize="11"
                                    VerticalAlignment="Center"

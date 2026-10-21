@@ -228,6 +228,10 @@
                                          Style="{StaticResource NavRadioStyle}"
                                          Content="6. Dados &amp; Limpeza"
                                          Checked="NavSection_Checked" />
+                            <RadioButton x:Name="NavModifiers"
+                                         Style="{StaticResource NavRadioStyle}"
+                                         Content="7. Textos &amp; Modificadores"
+                                         Checked="NavSection_Checked" />
                         </StackPanel>
                     </Border>
 
@@ -775,6 +779,232 @@
                                                 Click="ResetDefaults_Click" />
                                     </Grid>
                                 </Border>
+                            </StackPanel>
+
+                            <!-- SEÇÃO 7: TEXTOS RÁPIDOS & MODIFICADORES -->
+                            <StackPanel x:Name="PanelModifiers" Visibility="Collapsed">
+                                <TextBlock Text="Textos Rápidos, Saudações e Modelos"
+                                           Foreground="{DynamicResource PrimaryTextBrush}"
+                                           FontSize="16"
+                                           FontWeight="Bold"
+                                           Margin="0,0,0,4" />
+                                <TextBlock Text="Adicione saudações ou textos prévios (como 'Bom dia!', 'Boa tarde!') no início ou fim do que você copiar, com controle total de quebra de linha."
+                                           Foreground="{DynamicResource SecondaryTextBrush}"
+                                           FontSize="12"
+                                           Margin="0,0,0,14"
+                                           TextWrapping="Wrap" />
+
+                                <!-- Card de Ação: Adicionar / Editar Modificador -->
+                                <Border Style="{StaticResource SettingCardStyle}">
+                                    <StackPanel>
+                                        <TextBlock x:Name="TxtEditorTitle"
+                                                   Text="Adicionar Novo Texto / Modificador"
+                                                   Foreground="{DynamicResource AccentTextBrush}"
+                                                   FontWeight="Bold"
+                                                   FontSize="13"
+                                                   Margin="0,0,0,10" />
+
+                                        <!-- Linha 1: Rótulo do Chip e Posição -->
+                                        <Grid Margin="0,0,0,10">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="14" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="Nome no Chip (Rótulo Curto):"
+                                                           Foreground="{DynamicResource PrimaryTextBrush}"
+                                                           FontWeight="SemiBold"
+                                                           FontSize="12"
+                                                           Margin="0,0,0,4" />
+                                                <TextBox x:Name="TxtModLabel"
+                                                         Background="{DynamicResource InputBgBrush}"
+                                                         Foreground="{DynamicResource PrimaryTextBrush}"
+                                                         BorderBrush="{DynamicResource InputBorderBrush}"
+                                                         BorderThickness="1"
+                                                         Padding="8,6"
+                                                         FontSize="12"
+                                                         TextChanged="ModEditorField_Changed" />
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="2">
+                                                <TextBlock Text="Onde Inserir:"
+                                                           Foreground="{DynamicResource PrimaryTextBrush}"
+                                                           FontWeight="SemiBold"
+                                                           FontSize="12"
+                                                           Margin="0,0,0,4" />
+                                                <ComboBox x:Name="CmbModPosition"
+                                                          SelectionChanged="ModEditorField_Changed">
+                                                    <ComboBoxItem Content="No Começo (Prefixo)" Tag="0" IsSelected="True" />
+                                                    <ComboBoxItem Content="No Fim (Sufixo)" Tag="1" />
+                                                </ComboBox>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <!-- Linha 2: Texto a Inserir -->
+                                        <StackPanel Margin="0,0,0,10">
+                                            <TextBlock Text="Texto a Inserir:"
+                                                       Foreground="{DynamicResource PrimaryTextBrush}"
+                                                       FontWeight="SemiBold"
+                                                       FontSize="12"
+                                                       Margin="0,0,0,4" />
+                                            <TextBox x:Name="TxtModText"
+                                                     Background="{DynamicResource InputBgBrush}"
+                                                     Foreground="{DynamicResource PrimaryTextBrush}"
+                                                     BorderBrush="{DynamicResource InputBorderBrush}"
+                                                     BorderThickness="1"
+                                                     Padding="8,6"
+                                                     FontSize="12"
+                                                     AcceptsReturn="True"
+                                                     MaxHeight="80"
+                                                     TextChanged="ModEditorField_Changed" />
+                                        </StackPanel>
+
+                                        <!-- Linha 3: Espaçamento e Quebra de Linha -->
+                                        <Grid Margin="0,0,0,10">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="14" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="Espaçamento / Quebra:"
+                                                           Foreground="{DynamicResource PrimaryTextBrush}"
+                                                           FontWeight="SemiBold"
+                                                           FontSize="12"
+                                                           Margin="0,0,0,4" />
+                                                <ComboBox x:Name="CmbModSpacing"
+                                                          SelectionChanged="ModEditorField_Changed">
+                                                    <ComboBoxItem Content="Quebra dupla (parágrafo)" Tag="0" IsSelected="True" />
+                                                    <ComboBoxItem Content="Quebra simples (nova linha)" Tag="1" />
+                                                    <ComboBoxItem Content="Espaço simples" Tag="2" />
+                                                    <ComboBoxItem Content="Sem espaço (direto)" Tag="3" />
+                                                </ComboBox>
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,16,0,0">
+                                                <CheckBox x:Name="ChkModAutoReset"
+                                                          Style="{StaticResource ToggleCheckStyle}"
+                                                          Content="Resetar seleção após colar"
+                                                          IsChecked="True"
+                                                          ToolTip="Ao colar, aplica o modificador e volta automaticamente para 'Nenhum'" />
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <!-- Pré-visualização ao vivo -->
+                                        <Border Background="{DynamicResource HeaderFooterBgBrush}"
+                                                BorderBrush="{DynamicResource DividerBorderBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="6"
+                                                Padding="10,8"
+                                                Margin="0,0,0,12">
+                                            <StackPanel>
+                                                <TextBlock Text="Prévia do Texto Colado:"
+                                                           Foreground="{DynamicResource SecondaryTextBrush}"
+                                                           FontSize="11"
+                                                           FontWeight="SemiBold"
+                                                           Margin="0,0,0,4" />
+                                                <TextBlock x:Name="TxtModPreview"
+                                                           Foreground="{DynamicResource PrimaryTextBrush}"
+                                                           FontSize="12"
+                                                           TextWrapping="Wrap"
+                                                           FontFamily="Consolas, Segoe UI" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Botões de Ação do Editor -->
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button x:Name="BtnSaveModifier"
+                                                    Style="{StaticResource ActionButtonStyle}"
+                                                    Background="#2563EB"
+                                                    BorderBrush="#3B82F6"
+                                                    Foreground="#FFFFFF"
+                                                    Content="Salvar Modificador"
+                                                    Margin="0,0,8,0"
+                                                    Click="SaveModifierItem_Click" />
+                                            <Button x:Name="BtnCancelModifier"
+                                                    Style="{StaticResource ActionButtonStyle}"
+                                                    Content="Cancelar / Limpar"
+                                                    Click="CancelModifierItem_Click" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Lista de Modificadores Cadastrados -->
+                                <TextBlock Text="Modificadores Cadastrados:"
+                                           Foreground="{DynamicResource PrimaryTextBrush}"
+                                           FontWeight="SemiBold"
+                                           FontSize="13"
+                                           Margin="0,6,0,8" />
+
+                                <ItemsControl x:Name="ModifiersItemsList">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Style="{StaticResource SettingCardStyle}" Padding="12,10" Margin="0,0,0,8">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <StackPanel Grid.Column="0">
+                                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                                            <Border Background="#1E3A8A" CornerRadius="4" Padding="5,1" Margin="0,0,8,0">
+                                                                <TextBlock Text="{Binding Label}" Foreground="#93C5FD" FontWeight="Bold" FontSize="11" />
+                                                            </Border>
+                                                            <TextBlock Text="{Binding PositionDescription}" Foreground="{DynamicResource AccentTextBrush}" FontWeight="SemiBold" FontSize="11.5" Margin="0,0,8,0" VerticalAlignment="Center" />
+                                                            <TextBlock Text="{Binding SpacingDescription, StringFormat='• {0}'}" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" VerticalAlignment="Center" />
+                                                        </StackPanel>
+
+                                                        <TextBlock Text="{Binding Text, StringFormat='Texto: &quot;{0}&quot;'}"
+                                                                   Foreground="{DynamicResource PrimaryTextBrush}"
+                                                                   FontSize="12"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   MaxHeight="36" />
+
+                                                        <TextBlock Text="{Binding AutoReset, StringFormat='Auto-reset após colar: {0}'}"
+                                                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                                                   FontSize="10.5"
+                                                                   Margin="0,3,0,0" />
+                                                    </StackPanel>
+
+                                                    <!-- Botões de Ação na Linha -->
+                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <Button Style="{StaticResource ActionButtonStyle}"
+                                                                Content="▲"
+                                                                Padding="6,4"
+                                                                Margin="0,0,4,0"
+                                                                ToolTip="Mover para cima"
+                                                                Tag="{Binding}"
+                                                                Click="MoveUpModifier_Click" />
+                                                        <Button Style="{StaticResource ActionButtonStyle}"
+                                                                Content="▼"
+                                                                Padding="6,4"
+                                                                Margin="0,0,4,0"
+                                                                ToolTip="Mover para baixo"
+                                                                Tag="{Binding}"
+                                                                Click="MoveDownModifier_Click" />
+                                                        <Button Style="{StaticResource ActionButtonStyle}"
+                                                                Content="Editar"
+                                                                Padding="8,4"
+                                                                Margin="0,0,4,0"
+                                                                Tag="{Binding}"
+                                                                Click="EditModifier_Click" />
+                                                        <Button Style="{StaticResource ActionButtonStyle}"
+                                                                Content="✕"
+                                                                Padding="7,4"
+                                                                Foreground="#EF4444"
+                                                                ToolTip="Excluir modificador"
+                                                                Tag="{Binding}"
+                                                                Click="DeleteModifier_Click" />
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
                             </StackPanel>
                         </Grid>
                     </ScrollViewer>

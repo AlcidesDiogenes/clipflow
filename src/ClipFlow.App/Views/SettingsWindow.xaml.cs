@@ -1,4 +1,5 @@
 using System;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -15,15 +16,33 @@ public partial class SettingsWindow : Window
 {
     private readonly MainViewModel _viewModel;
     private readonly AppTheme _originalTheme;
+    private readonly ObservableCollection<TextModifierPreset> _workingModifiers = [];
+    private TextModifierPreset? _currentEditingModifier;
     private bool _saved;
 
-    public SettingsWindow(MainViewModel viewModel)
+    public SettingsWindow(MainViewModel viewModel, int initialSectionIndex = 0)
     {
         InitializeComponent();
         Icon = AppIconBuilder.CreateWpfWindowIcon();
         _viewModel = viewModel;
         _originalTheme = _viewModel.Settings.Theme;
         LoadFromSettings(_viewModel.Settings);
+        SelectSectionByIndex(initialSectionIndex);
+    }
+
+    public void SelectSectionByIndex(int index)
+    {
+        switch (index)
+        {
+            case 0: NavGeneral.IsChecked = true; break;
+            case 1: NavShortcuts.IsChecked = true; break;
+            case 2: NavHistory.IsChecked = true; break;
+            case 3: NavAppearance.IsChecked = true; break;
+            case 4: NavPrivacy.IsChecked = true; break;
+            case 5: NavData.IsChecked = true; break;
+            case 6: NavModifiers.IsChecked = true; break;
+            default: NavGeneral.IsChecked = true; break;
+        }
     }
 
     private void LoadFromSettings(AppSettings s)
@@ -67,6 +86,24 @@ public partial class SettingsWindow : Window
         // 6. Dados
         TxtDataFolderPath.Text = _viewModel.Storage.BaseDir;
         RefreshStatsLabel();
+
+        // 7. Textos & Modificadores
+        _workingModifiers.Clear();
+        foreach (var mod in s.TextModifiers)
+        {
+            _workingModifiers.Add(new TextModifierPreset
+            {
+                Id = mod.Id,
+                Label = mod.Label,
+                Text = mod.Text,
+                Position = mod.Position,
+                Spacing = mod.Spacing,
+                AutoReset = mod.AutoReset,
+                IsEnabled = mod.IsEnabled
+            });
+        }
+        ModifiersItemsList.ItemsSource = _workingModifiers;
+        ResetModifierEditor();
     }
 
     private void CmbTheme_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -128,6 +165,7 @@ public partial class SettingsWindow : Window
         PanelAppearance.Visibility = NavAppearance.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         PanelPrivacy.Visibility = NavPrivacy.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         PanelData.Visibility = NavData.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+        PanelModifiers.Visibility = NavModifiers.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
 
         RefreshStatsLabel();
     }
@@ -212,9 +250,165 @@ public partial class SettingsWindow : Window
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
+        // 6. Textos Rápidos & Modificadores
+        s.TextModifiers = _workingModifiers.ToList();
+
         _saved = true;
         _viewModel.ApplySettingsChanges(s.Shortcut);
         Close();
+    }
+
+    private void ModEditorField_Changed(object? sender, EventArgs? e)
+    {
+        UpdateModifierPreview();
+    }
+
+    private void UpdateModifierPreview()
+    {
+        if (TxtModPreview is null) return;
+
+        string sample = "Prezados, segue o relatório em anexo.";
+        string customText = TxtModText?.Text ?? string.Empty;
+
+        int posIdx = 0;
+        if (int.TryParse(GetSelectedTag(CmbModPosition), out int p)) posIdx = p;
+
+        int spaceIdx = 0;
+        if (int.TryParse(GetSelectedTag(CmbModSpacing), out int sp)) spaceIdx = sp;
+
+        var tempMod = new TextModifierPreset
+        {
+            Label = TxtModLabel?.Text ?? string.Empty,
+            Text = customText,
+            Position = (ModifierPosition)posIdx,
+            Spacing = (ModifierSpacing)spaceIdx,
+            AutoReset = ChkModAutoReset?.IsChecked == true
+        };
+
+        TxtModPreview.Text = TextModifierPreset.Apply(sample, tempMod);
+    }
+
+    private void SaveModifierItem_Click(object sender, RoutedEventArgs e)
+    {
+        string label = TxtModLabel.Text.Trim();
+        string text = TxtModText.Text;
+
+        if (string.IsNullOrWhiteSpace(label))
+        {
+            System.Windows.MessageBox.Show(this, "Por favor, digite um nome curto para o chip (ex: 'Bom dia').", "Nome Obrigatório", MessageBoxButton.OK, MessageBoxImage.Information);
+            TxtModLabel.Focus();
+            return;
+        }
+
+        if (string.IsNullOrEmpty(text))
+        {
+            System.Windows.MessageBox.Show(this, "Por favor, digite o texto a ser inserido.", "Texto Obrigatório", MessageBoxButton.OK, MessageBoxImage.Information);
+            TxtModText.Focus();
+            return;
+        }
+
+        int posIdx = 0;
+        if (int.TryParse(GetSelectedTag(CmbModPosition), out int p)) posIdx = p;
+
+        int spaceIdx = 0;
+        if (int.TryParse(GetSelectedTag(CmbModSpacing), out int sp)) spaceIdx = sp;
+
+        if (_currentEditingModifier is not null)
+        {
+            _currentEditingModifier.Label = label;
+            _currentEditingModifier.Text = text;
+            _currentEditingModifier.Position = (ModifierPosition)posIdx;
+            _currentEditingModifier.Spacing = (ModifierSpacing)spaceIdx;
+            _currentEditingModifier.AutoReset = ChkModAutoReset.IsChecked == true;
+        }
+        else
+        {
+            var newPreset = new TextModifierPreset
+            {
+                Label = label,
+                Text = text,
+                Position = (ModifierPosition)posIdx,
+                Spacing = (ModifierSpacing)spaceIdx,
+                AutoReset = ChkModAutoReset.IsChecked == true,
+                IsEnabled = true
+            };
+            _workingModifiers.Add(newPreset);
+        }
+
+        ResetModifierEditor();
+        TxtSaveFeedback.Text = $"Modificador '{label}' preparado para salvar.";
+    }
+
+    private void CancelModifierItem_Click(object sender, RoutedEventArgs e)
+    {
+        ResetModifierEditor();
+    }
+
+    private void ResetModifierEditor()
+    {
+        _currentEditingModifier = null;
+        if (TxtEditorTitle is not null) TxtEditorTitle.Text = "Adicionar Novo Texto / Modificador";
+        if (BtnSaveModifier is not null) BtnSaveModifier.Content = "Salvar Modificador";
+        if (TxtModLabel is not null) TxtModLabel.Text = string.Empty;
+        if (TxtModText is not null) TxtModText.Text = string.Empty;
+        if (CmbModPosition is not null) SelectComboByTag(CmbModPosition, "0");
+        if (CmbModSpacing is not null) SelectComboByTag(CmbModSpacing, "0");
+        if (ChkModAutoReset is not null) ChkModAutoReset.IsChecked = true;
+        UpdateModifierPreview();
+    }
+
+    private void EditModifier_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { Tag: TextModifierPreset item })
+        {
+            _currentEditingModifier = item;
+            TxtEditorTitle.Text = $"Editando Modificador: {item.Label}";
+            BtnSaveModifier.Content = "Atualizar Modificador";
+            TxtModLabel.Text = item.Label;
+            TxtModText.Text = item.Text;
+            SelectComboByTag(CmbModPosition, ((int)item.Position).ToString());
+            SelectComboByTag(CmbModSpacing, ((int)item.Spacing).ToString());
+            ChkModAutoReset.IsChecked = item.AutoReset;
+            UpdateModifierPreview();
+            TxtModLabel.Focus();
+            TxtModLabel.SelectAll();
+        }
+    }
+
+    private void DeleteModifier_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { Tag: TextModifierPreset item })
+        {
+            _workingModifiers.Remove(item);
+            if (_currentEditingModifier?.Id == item.Id)
+            {
+                ResetModifierEditor();
+            }
+        }
+    }
+
+    private void MoveUpModifier_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { Tag: TextModifierPreset item })
+        {
+            int index = _workingModifiers.IndexOf(item);
+            if (index > 0)
+            {
+                _workingModifiers.Move(index, index - 1);
+            }
+        }
+    }
+
+    private void MoveDownModifier_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { Tag: TextModifierPreset item })
+        {
+            int index = _workingModifiers.IndexOf(item);
+            if (index >= 0 && index < _workingModifiers.Count - 1)
+            {
+                _workingModifiers.Move(index, index + 1);
+            }
+        }
     }
 
     private void OpenDataFolder_Click(object sender, RoutedEventArgs e)

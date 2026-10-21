@@ -29,8 +29,10 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private ClipItem? _editingNoteItem;
     private string _editingNoteText = string.Empty;
     private string _statusMessage = "Pronto";
+    private TextModifierPreset? _activeModifier;
 
     public ObservableCollection<ClipItem> FilteredItems { get; } = [];
+    public ObservableCollection<TextModifierPreset> ActiveModifiersList { get; } = [];
     public event Action? SettingsApplied;
 
     public MainViewModel(StorageService storage, ClipboardService clipboardService)
@@ -39,6 +41,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         _clipboardService = clipboardService;
         _allItems = _storage.LoadHistory();
         UpdateHotkeyStatusText();
+        RefreshModifiersList();
         RefreshFilter();
     }
 
@@ -103,6 +106,30 @@ public sealed class MainViewModel : INotifyPropertyChanged
     }
 
     public bool IsEditingNote => _editingNoteItem is not null;
+
+    public TextModifierPreset? ActiveModifier
+    {
+        get => _activeModifier;
+        set
+        {
+            if (_activeModifier?.Id == value?.Id && (_activeModifier is null) == (value is null))
+            {
+                return;
+            }
+
+            _activeModifier = value;
+            SyncSelectedModifierState();
+
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(HasActiveModifier));
+            OnPropertyChanged(nameof(ActiveModifierLabel));
+            OnPropertyChanged(nameof(IsNoneModifierSelected));
+        }
+    }
+
+    public bool HasActiveModifier => _activeModifier is not null;
+    public bool IsNoneModifierSelected => _activeModifier is null;
+    public string ActiveModifierLabel => _activeModifier?.Label ?? "Nenhum";
 
     public string EditingNoteText
     {
@@ -296,8 +323,83 @@ public sealed class MainViewModel : INotifyPropertyChanged
         UpdateHotkeyStatusText();
         OnPropertyChanged(nameof(ShortcutBadgeText));
         OnPropertyChanged(nameof(ShowFooterHints));
+        RefreshModifiersList();
         RefreshFilter(SelectedItem);
         SettingsApplied?.Invoke();
+    }
+
+    public void RefreshModifiersList()
+    {
+        ActiveModifiersList.Clear();
+        var enabled = _clipboardService.Settings.TextModifiers
+            .Where(m => m.IsEnabled && !string.IsNullOrWhiteSpace(m.Label))
+            .ToList();
+
+        for (int i = 0; i < enabled.Count; i++)
+        {
+            var mod = enabled[i];
+            mod.ShortcutIndex = i < 9 ? i + 1 : 0;
+            ActiveModifiersList.Add(mod);
+        }
+
+        // Re-sincroniza a referência do modificador ativo para o item da nova lista
+        if (_activeModifier is not null)
+        {
+            _activeModifier = ActiveModifiersList.FirstOrDefault(m => string.Equals(m.Id, _activeModifier.Id, StringComparison.Ordinal));
+        }
+
+        SyncSelectedModifierState();
+
+        OnPropertyChanged(nameof(ActiveModifier));
+        OnPropertyChanged(nameof(HasActiveModifier));
+        OnPropertyChanged(nameof(ActiveModifierLabel));
+        OnPropertyChanged(nameof(IsNoneModifierSelected));
+    }
+
+    public void SyncSelectedModifierState()
+    {
+        var targetId = _activeModifier?.Id;
+        foreach (var mod in ActiveModifiersList)
+        {
+            mod.IsSelected = targetId is not null && string.Equals(mod.Id, targetId, StringComparison.Ordinal);
+        }
+    }
+
+    public void SelectModifier(TextModifierPreset? preset)
+    {
+        if (preset is not null && string.Equals(_activeModifier?.Id, preset.Id, StringComparison.Ordinal))
+        {
+            // Clicar no mesmo chip que já está ativo desativa ele (toggle)
+            ActiveModifier = null;
+            StatusMessage = "Modificador de texto desativado.";
+        }
+        else
+        {
+            var target = preset is null
+                ? null
+                : ActiveModifiersList.FirstOrDefault(m => string.Equals(m.Id, preset.Id, StringComparison.Ordinal)) ?? preset;
+
+            ActiveModifier = target;
+            StatusMessage = target is not null
+                ? $"Modificador ativo: {target.Label} ({target.PositionDescription})"
+                : "Modificador de texto desativado.";
+        }
+    }
+
+    public void SelectModifierByIndex(int index1Based)
+    {
+        int arrayIndex = index1Based - 1;
+        if (arrayIndex >= 0 && arrayIndex < ActiveModifiersList.Count)
+        {
+            var target = ActiveModifiersList[arrayIndex];
+            SelectModifier(target);
+        }
+    }
+
+    public void ClearModifier()
+    {
+        ActiveModifier = null;
+        StatusMessage = "Modificador de texto desativado.";
     }
 
     public void ResetDefaultSettings()

@@ -42,7 +42,12 @@ public sealed class StorageService
             if (File.Exists(SettingsFilePath))
             {
                 var json = File.ReadAllText(SettingsFilePath);
-                return JsonSerializer.Deserialize<AppSettings>(json, JsonOptions) ?? new AppSettings();
+                var loaded = JsonSerializer.Deserialize<AppSettings>(json, JsonOptions) ?? new AppSettings();
+                if (loaded.TextModifiers is null || loaded.TextModifiers.Count == 0)
+                {
+                    loaded.TextModifiers = new AppSettings().TextModifiers;
+                }
+                return loaded;
             }
         }
         catch

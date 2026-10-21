@@ -90,10 +90,10 @@ public partial class PopupWindow : Window
         var workArea = screen.WorkingArea;
         var (winW, winH) = GetPhysicalWindowSize(hwnd);
 
-        int minX = workArea.Left + 8;
-        int maxX = Math.Max(minX, workArea.Right - winW - 8);
-        int minY = workArea.Top + 10;
-        int maxY = Math.Max(minY, workArea.Bottom - winH - 10);
+        int minX = workArea.Left;
+        int maxX = Math.Max(minX, workArea.Right - winW);
+        int minY = workArea.Top + 8;
+        int maxY = Math.Max(minY, workArea.Bottom - winH - 8);
 
         int targetX = isLeftEdge ? minX : maxX;
         int targetY = Math.Clamp(pt.Y - (winH / 2), minY, maxY);
@@ -161,23 +161,34 @@ public partial class PopupWindow : Window
         if (hwnd == 0) return;
 
         var fgHwnd = NativeMethods.GetForegroundWindow();
-        if (fgHwnd != 0 && fgHwnd != hwnd)
-        {
-            uint fgThread = NativeMethods.GetWindowThreadProcessId(fgHwnd, out _);
-            uint currentThread = NativeMethods.GetCurrentThreadId();
+        if (fgHwnd == hwnd) return;
 
+        uint fgThread = NativeMethods.GetWindowThreadProcessId(fgHwnd, out _);
+        uint currentThread = NativeMethods.GetCurrentThreadId();
+
+        try
+        {
             if (fgThread != 0 && fgThread != currentThread)
             {
                 NativeMethods.AttachThreadInput(currentThread, fgThread, true);
-                NativeMethods.SetForegroundWindow(hwnd);
-                NativeMethods.BringWindowToTop(hwnd);
+            }
+
+            // Simula acionamento neutro da tecla Alt para desarmar o Lock Timeout do Windows
+            NativeMethods.keybd_event((byte)NativeMethods.VK_MENU, 0, 0, 0);
+            NativeMethods.SetForegroundWindow(hwnd);
+            NativeMethods.BringWindowToTop(hwnd);
+            NativeMethods.keybd_event((byte)NativeMethods.VK_MENU, 0, NativeMethods.KEYEVENTF_KEYUP, 0);
+
+            if (fgThread != 0 && fgThread != currentThread)
+            {
                 NativeMethods.AttachThreadInput(currentThread, fgThread, false);
-                return;
             }
         }
-
-        NativeMethods.SetForegroundWindow(hwnd);
-        NativeMethods.BringWindowToTop(hwnd);
+        catch
+        {
+            NativeMethods.SetForegroundWindow(hwnd);
+            NativeMethods.BringWindowToTop(hwnd);
+        }
     }
 
     private void OnOutsideClickTimerTick(object? sender, EventArgs e)
@@ -193,8 +204,8 @@ public partial class PopupWindow : Window
             return;
         }
 
-        // Pequena janela de estabilização logo após abrir pela borda
-        if ((DateTime.UtcNow - _openedAtUtc).TotalMilliseconds < 180)
+        // Janela de proteção contra cliques residuais logo após abrir pela borda
+        if ((DateTime.UtcNow - _openedAtUtc).TotalMilliseconds < 450)
         {
             _wasMousePressed = IsAnyMouseButtonDown();
             return;
@@ -211,8 +222,9 @@ public partial class PopupWindow : Window
 
         if (NativeMethods.GetCursorPos(out var pt) && NativeMethods.GetWindowRect(hwnd, out var rect))
         {
-            bool insideWindow = pt.X >= rect.Left && pt.X <= rect.Right &&
-                                pt.Y >= rect.Top && pt.Y <= rect.Bottom;
+            // Margem de tolerância para a borda transparente e sombras
+            bool insideWindow = pt.X >= (rect.Left - 6) && pt.X <= (rect.Right + 6) &&
+                                pt.Y >= (rect.Top - 6) && pt.Y <= (rect.Bottom + 6);
 
             if (!insideWindow)
             {
@@ -228,15 +240,16 @@ public partial class PopupWindow : Window
                (NativeMethods.GetAsyncKeyState(NativeMethods.VK_MBUTTON) & 0x8000) != 0;
     }
 
-    public void OpenSettingsDialog()
+    public void OpenSettingsDialog(int initialSectionIndex = 0)
     {
         if (_openSettingsWindow is { IsLoaded: true })
         {
+            _openSettingsWindow.SelectSectionByIndex(initialSectionIndex);
             _openSettingsWindow.Activate();
             return;
         }
 
-        _openSettingsWindow = new SettingsWindow(_viewModel);
+        _openSettingsWindow = new SettingsWindow(_viewModel, initialSectionIndex);
         _openSettingsWindow.Closed += (_, _) =>
         {
             _openSettingsWindow = null;
@@ -330,8 +343,33 @@ public partial class PopupWindow : Window
             bool plainText = forcePlainText || s.DefaultPlainTextPaste;
             var targetHwnd = _foregroundTracker.LastTargetWindow;
 
-            bool copied = _clipboardService.PlaceItemOnClipboard(item, plainText);
+            var activeMod = _viewModel.ActiveModifier;
+            ClipItem itemToPaste = item;
+
+            if (activeMod is not null && !string.IsNullOrEmpty(item.TextContent))
+            {
+                var transformed = TextModifierPreset.Apply(item.TextContent, activeMod);
+                itemToPaste = new ClipItem
+                {
+                    Id = item.Id,
+                    Kind = ClipKind.Text,
+                    TextContent = transformed,
+                    HtmlContent = null,
+                    PreviewText = ContentDetector.BuildPreviewText(transformed),
+                    ContentHash = item.ContentHash,
+                    SourceAppName = item.SourceAppName,
+                    TitleOrNote = item.TitleOrNote,
+                    IsPinned = item.IsPinned
+                };
+            }
+
+            bool copied = _clipboardService.PlaceItemOnClipboard(itemToPaste, plainText);
             _viewModel.NotifyItemPasted(item);
+
+            if (activeMod is { AutoReset: true })
+            {
+                _viewModel.ClearModifier();
+            }
 
             HidePopup();
 
@@ -355,7 +393,11 @@ public partial class PopupWindow : Window
 
         if (e.Key == Key.Escape)
         {
-            if (!string.IsNullOrEmpty(_viewModel.SearchText))
+            if (_viewModel.HasActiveModifier)
+            {
+                _viewModel.ClearModifier();
+            }
+            else if (!string.IsNullOrEmpty(_viewModel.SearchText))
             {
                 _viewModel.SearchText = string.Empty;
             }
@@ -424,16 +466,51 @@ public partial class PopupWindow : Window
         }
 
         var key = e.Key == Key.System ? e.SystemKey : e.Key;
-        if ((Keyboard.Modifiers == ModifierKeys.Alt || Keyboard.Modifiers == ModifierKeys.Control)
-            && key is >= Key.D1 and <= Key.D9)
+        if (Keyboard.Modifiers == ModifierKeys.Alt && key is >= Key.D1 and <= Key.D9)
+        {
+            int digit = (int)(key - Key.D1 + 1);
+            _viewModel.SelectModifierByIndex(digit);
+            e.Handled = true;
+            return;
+        }
+
+        if (Keyboard.Modifiers == ModifierKeys.Alt && key == Key.D0)
+        {
+            _viewModel.ClearModifier();
+            e.Handled = true;
+            return;
+        }
+
+        if (Keyboard.Modifiers == ModifierKeys.Control && key is >= Key.D1 and <= Key.D9)
         {
             int index = key - Key.D1;
             if (index >= 0 && index < _viewModel.FilteredItems.Count)
             {
                 e.Handled = true;
                 await PasteSelectedItemAsync(_viewModel.FilteredItems[index]);
+                return;
             }
         }
+    }
+
+    private void NoneModifierChip_Click(object sender, RoutedEventArgs e)
+    {
+        _viewModel.ClearModifier();
+        SearchBox.Focus();
+    }
+
+    private void ModifierChip_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { Tag: TextModifierPreset preset })
+        {
+            _viewModel.SelectModifier(preset);
+            SearchBox.Focus();
+        }
+    }
+
+    private void ManageModifiersButton_Click(object sender, RoutedEventArgs e)
+    {
+        OpenSettingsDialog(6);
     }
 
     private void MoveSelection(int delta)
@@ -536,9 +613,18 @@ public partial class PopupWindow : Window
 
     private void Window_Deactivated(object sender, EventArgs e)
     {
-        if (!_isPasting && _openSettingsWindow is null && _clipboardService.Settings.CloseOnBlur)
+        if (_isPasting || _openSettingsWindow is not null || !_clipboardService.Settings.CloseOnBlur)
         {
-            HidePopup();
+            return;
         }
+
+        // Se a janela acabou de ser exibida (menos de 500ms), ignora desativações transitórias
+        // causadas pelo ajuste de ativação inicial do Windows.
+        if ((DateTime.UtcNow - _openedAtUtc).TotalMilliseconds < 500)
+        {
+            return;
+        }
+
+        HidePopup();
     }
 }

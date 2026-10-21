@@ -46,4 +46,39 @@ public sealed class AppSettings
         "LastPass",
         "Dashlane"
     ];
+
+    // 6. Textos Rápidos & Modificadores (Saudações, Despedidas, Modelos)
+    public List<TextModifierPreset> TextModifiers { get; set; } =
+    [
+        new()
+        {
+            Id = "mod-bom-dia",
+            Label = "Bom dia",
+            Text = "Bom dia!",
+            Position = ModifierPosition.Prefix,
+            Spacing = ModifierSpacing.DoubleLine,
+            AutoReset = true,
+            IsEnabled = true
+        },
+        new()
+        {
+            Id = "mod-boa-tarde",
+            Label = "Boa tarde",
+            Text = "Boa tarde!",
+            Position = ModifierPosition.Prefix,
+            Spacing = ModifierSpacing.DoubleLine,
+            AutoReset = true,
+            IsEnabled = true
+        },
+        new()
+        {
+            Id = "mod-atenciosamente",
+            Label = "Atenciosamente",
+            Text = "Atenciosamente,",
+            Position = ModifierPosition.Suffix,
+            Spacing = ModifierSpacing.DoubleLine,
+            AutoReset = true,
+            IsEnabled = true
+        }
+    ];
 }
