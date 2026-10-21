@@ -20,16 +20,99 @@ public enum ModifierSpacing
 
 public sealed class TextModifierPreset : INotifyPropertyChanged
 {
+    private string _id = Guid.NewGuid().ToString("N");
+    private string _label = string.Empty;
+    private string _text = string.Empty;
+    private ModifierPosition _position = ModifierPosition.Prefix;
+    private ModifierSpacing _spacing = ModifierSpacing.DoubleLine;
+    private bool _autoReset = true;
+    private bool _isEnabled = true;
     private bool _isSelected;
     private int _shortcutIndex;
 
-    public string Id { get; set; } = Guid.NewGuid().ToString("N");
-    public string Label { get; set; } = string.Empty;
-    public string Text { get; set; } = string.Empty;
-    public ModifierPosition Position { get; set; } = ModifierPosition.Prefix;
-    public ModifierSpacing Spacing { get; set; } = ModifierSpacing.DoubleLine;
-    public bool AutoReset { get; set; } = true;
-    public bool IsEnabled { get; set; } = true;
+    public string Id
+    {
+        get => _id;
+        set
+        {
+            if (_id == value) return;
+            _id = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public string Label
+    {
+        get => _label;
+        set
+        {
+            if (_label == value) return;
+            _label = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(TooltipText));
+        }
+    }
+
+    public string Text
+    {
+        get => _text;
+        set
+        {
+            if (_text == value) return;
+            _text = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(TooltipText));
+        }
+    }
+
+    public ModifierPosition Position
+    {
+        get => _position;
+        set
+        {
+            if (_position == value) return;
+            _position = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(PositionDescription));
+            OnPropertyChanged(nameof(TooltipText));
+        }
+    }
+
+    public ModifierSpacing Spacing
+    {
+        get => _spacing;
+        set
+        {
+            if (_spacing == value) return;
+            _spacing = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(SpacingDescription));
+            OnPropertyChanged(nameof(TooltipText));
+        }
+    }
+
+    public bool AutoReset
+    {
+        get => _autoReset;
+        set
+        {
+            if (_autoReset == value) return;
+            _autoReset = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(TooltipText));
+        }
+    }
+
+    public bool IsEnabled
+    {
+        get => _isEnabled;
+        set
+        {
+            if (_isEnabled == value) return;
+            _isEnabled = value;
+            OnPropertyChanged();
+        }
+    }
 
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsSelected
