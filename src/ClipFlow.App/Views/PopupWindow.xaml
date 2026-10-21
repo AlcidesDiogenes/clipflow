@@ -611,6 +611,7 @@
                                                     Padding="5,2"
                                                     Margin="0,0,4,0"
                                                     VerticalAlignment="Center"
+                                                    ToolTip="{Binding QuickIndexLabel, StringFormat='Atalho: {0} para colar este item diretamente'}"
                                                     Visibility="{Binding HasQuickIndex, Converter={StaticResource BoolToVis}}">
                                                 <TextBlock Text="{Binding QuickIndexLabel}"
                                                            Foreground="{DynamicResource AccentTextBrush}"

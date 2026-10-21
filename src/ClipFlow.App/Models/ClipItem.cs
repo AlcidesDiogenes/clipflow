@@ -99,7 +99,7 @@ public sealed class ClipItem : INotifyPropertyChanged
     public bool HasQuickIndex => _quickIndex is >= 1 and <= 9;
 
     [JsonIgnore]
-    public string QuickIndexLabel => HasQuickIndex ? $"Alt+{_quickIndex}" : string.Empty;
+    public string QuickIndexLabel => HasQuickIndex ? $"Ctrl+{_quickIndex}" : string.Empty;
 
     [JsonIgnore]
     public bool HasNote => !string.IsNullOrWhiteSpace(_titleOrNote);
